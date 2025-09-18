@@ -35,6 +35,8 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     BufferedImage brickImage;
     //slimes
     ArrayList<Slime> slimes = new ArrayList<>();
+    //bats
+    ArrayList<Bat> bats = new ArrayList<>();
     //flag
     Flag flag;
     BufferedImage flagImage;
@@ -44,6 +46,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     //Spike
     ArrayList<Spike> spikes = new ArrayList<>();
     BufferedImage spikeImage;
+    //boss
     ArrayList<SlimeBoss> bosses = new ArrayList<>();
 
     //performance
@@ -75,6 +78,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                     slimes.clear();
                     spikes.clear();
                     bosses.clear();
+                    bats.clear();
                     flagVisible = false;
                     screenX = 0;
                     screenY = 0;
@@ -102,6 +106,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                     slimes.clear();
                     spikes.clear();
                     bosses.clear();
+                    bats.clear();
                     if(level == 1){
                         makeLv1();
                     } else if(level == 2){
@@ -117,6 +122,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                     slimes.clear();
                     spikes.clear();
                     bosses.clear();
+                    bats.clear();
                     if(level == 1){
                         makeLv1();
                     } else if(level == 2){
@@ -138,6 +144,16 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                         }
                     }
                 }
+                if(!bats.isEmpty()){
+                    for(Bat bat : bats){
+                        bat.update();
+                        if(!bat.alive && !bat.dying){
+                            bats.remove(bat);
+                            break;
+                        }
+                    }
+                }
+
                 for(SlimeBoss boss : bosses){
                     boss.update();
                     if(boss.hp <= 0 && !boss.dying && !boss.alive){
@@ -156,6 +172,9 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                     player.nextFrame();
                     for(Slime slime: slimes){
                         slime.nextFrame();
+                    }
+                    for(Bat bat : bats){
+                        bat.nextFrame();
                     }
                     for(SlimeBoss boss : bosses){
                         boss.nextFrame();
@@ -186,7 +205,6 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
         gtd = (Graphics2D) g;
         gtd.drawImage(background,0,0,screenWidth,screenHeight,null);
         if(running) {
-
             for (Wall wall : walls) {
                 wall.draw(gtd);
             }
@@ -199,6 +217,9 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
             }
             for (Slime slime : slimes) {
                 slime.draw(gtd);
+            }
+            for(Bat bat : bats){
+                bat.draw(gtd);
             }
             for (SlimeBoss boss : bosses){
                 boss.draw(gtd);
@@ -216,9 +237,16 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
             for (int i = 0; i < screenWidth; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
+            for(int i = 0; i < 7; i++){
+                walls.add(new Wall(i*32, 32*10, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall((i+9)*32, 32*10, blockWidth, blockHeight, brickImage));
+
+            }
             walls.add(new Wall(32, screenHeight - 96, blockWidth, blockHeight, brickImage));
             walls.add(new Wall(32, screenHeight - (32 * 4), blockWidth, blockHeight, brickImage));
             walls.add(new Wall(32, screenHeight - (32 * 5), blockWidth, blockHeight, brickImage));
+
+            bats.add(new Bat(32*5, 32*6, this));
         }
         if (screenX == 1){
             flagVisible = true;
@@ -317,6 +345,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
             for(int i = 0; i < 19; i++) {
                 walls.add(new Wall(32*i, 32 * 4, blockWidth, blockHeight, brickImage));
             }
+            bats.add(new Bat(32*3, 32*9, this));
             flagVisible = true;
             flag = new Flag(96, screenHeight - 96, blockWidth, blockHeight, flagImage);
         }

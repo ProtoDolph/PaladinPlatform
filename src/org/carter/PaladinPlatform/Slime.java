@@ -200,7 +200,6 @@ public class Slime {
             }
         }
     }
-
     public void checkCollisionX(){
         hitBox.x += xspeed;
         for(Wall wall : panel.walls){
