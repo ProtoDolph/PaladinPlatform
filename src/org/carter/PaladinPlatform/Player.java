@@ -57,7 +57,7 @@ public class Player {
         spacePressed = false;
 
         moveSpeed = 1;
-        maxSpeed = 5.5;
+        maxSpeed = 5;
         stopSpeed = 0.7;
         jumpSpeed = -7.2;
         fallSpeed = 0.3;
