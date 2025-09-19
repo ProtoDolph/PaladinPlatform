@@ -130,6 +130,11 @@ public class Player {
                 hitBox.y--;
             }
         }
+        if(jumping && !keyUp){
+            if(ySpeed < 0) {
+                ySpeed += 0.3;
+            }
+        }
 
         if (keySpace) {
             if (!attacking && !hit) {
