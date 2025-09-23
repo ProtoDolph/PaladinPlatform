@@ -3,6 +3,14 @@ package org.carter.PaladinPlatform;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+
+/**
+ * The player class that contains all of its data including
+ * coordinates, dimensions, hit box coordinates and dimensions
+ * collisions, animations, the current frame, the frame number,
+ * velocity, attacking, jumping, hostile collisions.
+ * HP, if its dying and if it's alive.
+ */
 public class Player {
     GamePanel panel;
     int x;
@@ -49,6 +57,16 @@ public class Player {
     int frameNum;
     BufferedImage currFrame;
 
+    /**
+     * The constructor of the player. Creates the player at a specified x and y coordinate
+     * With the GamePanel so the player can access other entities hit boxes through the GamePanel
+     * Creates the hit Box, sets the width, height, the maxSpeed, the moveSpeed, the fallSpeed,
+     * Sets the proper booleans to false or true. Sets player HP. Loads the player images for animation
+     * through loadPlayerImages(); sets the current frame and frame num.
+     * @param x the x coordinate teh player is spawning in at.
+     * @param y the y coordinate the player is spawning in at.
+     * @param panel the GamePanel the player is a part of so the player class can reference it.
+     */
     public Player(int x, int y, GamePanel panel){
 
         this.panel = panel;
@@ -80,6 +98,22 @@ public class Player {
         alive = true;
         dying = false;
     }
+
+    /**
+     * This updates the player every frame in the gamePanel
+     * Updates its position. Checks key input for movement jumping or attacking
+     * Updates its animation. Checks collision and updates velocity, Checks if it is hit by hostile hit boxes.
+     * Updates velocities and then updates position and hitBox position.
+     * Preconditions:
+     *  - Player must be a constructed object.
+     *  - player must have its loadPlayerImages(); called.
+     *  - key input must have a listener processing it. Won't cause an error. Just won't update
+     *  - Must be part of the GamePanel
+     *  Post:
+     *  - Player is updated based on its movement and actions
+     *  - collisions is checked to avoid the player from passing through things.
+     *  - hostile collisions are checked to see if the player gets hit.
+     */
     public void set(){
 
         checkCollisionX();
@@ -168,11 +202,21 @@ public class Player {
         hitBox.x = x;
         hitBox.y = y;
     }
+
+    /**
+     * The draw method for the player. Will draw the player based on the current frame the player is in
+     * Will draw the current frame facing left or right depending on the facingLeft boolean.
+     * Optional collision box being drawn. It is commented out.
+     * Will also draw the player's hp bar.
+     * @param gtd The graphics base the player will be drawn on.
+     */
     public void draw(Graphics2D gtd){
         //Frame check
-        // Collision Box
+        // Collision Box and Attack Hit Box.
+    /*
         gtd.setColor(Color.YELLOW);
         gtd.fillRect(x,y,width,height);
+
         if(attacking){
             gtd.setColor(Color.RED);
             if(facingLeft) {
@@ -181,6 +225,9 @@ public class Player {
                 gtd.fillRect(x + width/2, y, 2*width, height);
             }
         }
+
+     */
+
         if(facingLeft){
             if(currFrame == attack[3]){
                 gtd.drawImage(currFrame,x+width+21,y - (currFrame.getHeight() -height),-currFrame.getWidth(),currFrame.getHeight(),null);
@@ -201,6 +248,15 @@ public class Player {
         gtd.setColor(Color.BLACK);
         gtd.drawRect(0,0,200,32);
     }
+
+    /**
+     * Checks the player's collision in the Y direction.
+     * If the player is falling and hits a tile it will make it so that the player stops and doesn't fall through
+     * Same for if the Player is jumping up through tile.
+     * It does this by taking the hit box of the player and temporarily putting it where the player will go with teh current
+     * ySpeed. It then checks if the new hit box will intersect any tiles. If it does it will reduce the ySpeed of the player
+     * until the HitBox doesn't intersect with any walls or tiles.
+     */
     public void checkCollisionY(){
         //bottom collision
         hitBox.y += ySpeed;
@@ -215,6 +271,14 @@ public class Player {
             }
         }
     }
+    /**
+     * Checks the player's collision in the X direction.
+     * If the player is moving left or right This will make sure the Player doesn't walk through any tiles or walls.
+     * It does this by taking the hit box of the player and temporarily putting it where the player will go with the current
+     * xSpeed of the player. It then checks if the new hit box will intersect any tiles.
+     * If it does it will reduce the xSpeed of the player
+     * until the HitBox doesn't intersect with any walls or tiles.
+     */
     public void checkCollisionX(){
         hitBox.x += xSpeed;
         for(Wall wall : panel.walls){
@@ -227,12 +291,53 @@ public class Player {
             }
         }
     }
+
+    /**
+     * Sets the x coordinate of the Player with a new x value.
+     * Used to reset the player's position in between levels and parts of levels.
+     * @param x the new X coordinate of the player.
+     */
     public void setX(int x){this.x = x;}
+
+    /**
+     * Sets the y coordinate of the Player with a new y value.
+     * Used to reset the Player's position in between levels and parts of levels.
+     * @param y the new Y coordinate of the player.
+     */
     public void setY(int y) {this.y = y;}
+
+    /**
+     * This method checks if the player is hit by any hostile entities.
+     * That being slimes, bats, bosses, and spikes.
+     * Using its GamePanel reference it will check the lists of all the entities
+     * then will check if that entity is still alive
+     * then checks if that entity's hit box is intersecting the player's hit box
+     * then will make sure the player is not already in teh hurt animation to avoid infinite damage.
+     * IF the player is not hit and does intersect a hostile entity's hit box it will
+     * set hit to true, the frameNum to 0 to start the hurt animation. and give teh player a little jolt in jump speed.
+     */
     public void checkHit(){
         for(Slime slime : panel.slimes){
             if(slime.alive && alive) {
                 if (hitBox.intersects(slime.hitBox)) {
+                    if (!hit) {
+                        frameNum = 0;
+                        playerHP -= 10;
+                        ySpeed = 3 * (jumpSpeed / 4);
+                        attacking = false;
+                        if (facingLeft) {
+                            xSpeed -= 2 * jumpSpeed;
+                        } else {
+                            xSpeed += 2 * jumpSpeed;
+                        }
+                    }
+                    hit = true;
+                }
+            }
+        }
+        for(Bat bat : panel.bats){
+            if(bat.alive && alive) {
+                if (hitBox.intersects(bat.hitBox)) {
                     if (!hit) {
                         frameNum = 0;
                         playerHP -= 10;
@@ -317,6 +422,14 @@ public class Player {
             }
         }
     }
+
+    /**
+     * This method checks to see if the player is still alive.
+     * First it checks to see if the player's hp is less than zero
+     * if it is then it sets the player alive boolean to false and dying to true
+     * to start the death animation. Then when the death animation is finished dying is set to false
+     *  and the game ends.
+     */
     public void checkDead(){
         if(playerHP <= 0){
             alive = false;
@@ -415,13 +528,28 @@ public class Player {
             e.printStackTrace();
         }
     }
+
+    /**
+     * This gets the next frame of whatever action the player is in.
+     * Using the currFrame variable to store the current frame. and frameNUm to store
+     * the integer of the frame needed in each list of BufferedImage for each action.
+     * First it checks if the player is dying as the death animation takes priority.
+     * Next in priority is teh hurt animation. Then the attacking animation
+     * then the Jumping animation. Then the walking animation. Finally, the last in priority is the idle animation.
+     * First it checks if the frameNUm is greater than or equal to the length of the BufferedImage[] for the current action.
+     * if frameNum is grater than the length it will set FrameNum to 0 and on some animation set the action boolean
+     * for that animation to false; Then after finding the next frame it sets currFrame to equal it. Then it increases frameNum by 1
+     * for the next time nextFrame() is called.
+     */
     public void nextFrame(){
         if(dying){
             if(frameNum >= dead.length){
                 dying = false;
                 frameNum = 0;
+                currFrame = dead[-1];
+            }else {
+                currFrame = dead[frameNum];
             }
-            currFrame = dead[frameNum];
             frameNum++;
         } else if(hit){
             if(frameNum >= hurt.length){

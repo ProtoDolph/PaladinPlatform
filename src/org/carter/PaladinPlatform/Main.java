@@ -7,6 +7,12 @@ import static javax.swing.WindowConstants.*;
 
 public class Main {
 
+    /**
+     * The Main method. Runs the program by creating a Mainframe which is a JPanel
+     * and then that panel handles all of the updates and drawing.
+     * This main method just handles the frame, frame size, frame title. Frame position. ect..
+     * @param args
+     */
     public static void main(String[] args){
         MainFrame frame = new MainFrame();
 

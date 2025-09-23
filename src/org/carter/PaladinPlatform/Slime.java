@@ -87,14 +87,14 @@ public class Slime {
         hitBox.y = y;
     }
     public void draw(Graphics2D gtd){
-        gtd.setColor(Color.RED);
-        gtd.drawRect(x, y, width, height);
+        //gtd.setColor(Color.RED);
+        //gtd.drawRect(x, y, width, height);
         if (faceRight) {
             gtd.drawImage(currFrame, x, y - (currFrame.getHeight() - height), width, currFrame.getHeight(), null);
-            gtd.drawRect(x + width, y + height, width ,height);
+            //gtd.drawRect(x + width, y + height, width ,height);
         } else {
             gtd.drawImage(currFrame, x + width, y - (currFrame.getHeight() - height), -width, currFrame.getHeight(), null);
-            gtd.drawRect(x-width,y+height, width ,height);
+            //gtd.drawRect(x-width,y+height, width ,height);
         }
     }
     public void checkAlive(Player player){

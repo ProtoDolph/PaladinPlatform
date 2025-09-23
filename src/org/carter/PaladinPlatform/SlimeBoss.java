@@ -188,26 +188,26 @@ public class SlimeBoss {
     }
     public void draw(Graphics2D gtd){
 
-        gtd.setColor(Color.RED);
-        gtd.drawRect(x, y, width, height);
+        //gtd.setColor(Color.RED);
+        //gtd.drawRect(x, y, width, height);
 
         if(attack1){
             if (faceRight) {
                 if(currFrame == atk1[7] || currFrame == atk1[8]){
-                    gtd.setColor(Color.RED);
-                    gtd.fillRect(atk1HitBox.x + width, atk1HitBox.y, atk1HitBox.width, atk1HitBox.height);
+                    //gtd.setColor(Color.RED);
+                    //gtd.fillRect(atk1HitBox.x + width, atk1HitBox.y, atk1HitBox.width, atk1HitBox.height);
                     gtd.drawImage(currFrame, x - 4, y - ((2 * currFrame.getHeight() - height)), 3 * currFrame.getWidth(), 2*currFrame.getHeight(), null);
 
                 }else if (currFrame == atk1[9]){
                     gtd.drawImage(currFrame, x - 4, y - ((2 * currFrame.getHeight() - height)), (int) (2.5 * currFrame.getWidth()), 2*currFrame.getHeight(), null);
-                    gtd.drawRect(x + width, y + height, width, height);
+                    //gtd.drawRect(x + width, y + height, width, height);
                 } else{
                     gtd.drawImage(currFrame, x - 4, y - ((2 * currFrame.getHeight() - height)), 2 * currFrame.getWidth(), 2*currFrame.getHeight(), null);
                 }
             } else {
                 if(currFrame == atk1[7] || currFrame == atk1[8]) {
-                    gtd.setColor(Color.RED);
-                    gtd.fillRect(atk1HitBox.x - atk1HitBox.width, atk1HitBox.y, atk1HitBox.width, atk1HitBox.height);
+                    //gtd.setColor(Color.RED);
+                    //gtd.fillRect(atk1HitBox.x - atk1HitBox.width, atk1HitBox.y, atk1HitBox.width, atk1HitBox.height);
                     gtd.drawImage(currFrame, x + width + 4, y - ((2 * currFrame.getHeight() - height)), -3 * currFrame.getWidth(), 2*currFrame.getHeight(), null);
                 } else if (currFrame == atk1[9]){
                     gtd.drawImage(currFrame, x + width + 4, y - ((2 * currFrame.getHeight() - height)), (int) (-2.5 * currFrame.getWidth()), 2*currFrame.getHeight(), null);
@@ -224,8 +224,8 @@ public class SlimeBoss {
             }
         }
         else if(attack3){
-            gtd.setColor(Color.RED);
-            gtd.fillRect(atk3HitBox.x, atk3HitBox.y, atk3HitBox.width, atk3HitBox.height);
+            //gtd.setColor(Color.RED);
+            //gtd.fillRect(atk3HitBox.x, atk3HitBox.y, atk3HitBox.width, atk3HitBox.height);
             if (frameNum < 5) {
                 if(currFrame == atk3[0] || currFrame == atk3[1]){
                     gtd.drawImage(currFrame, x-6, y - ((2 * (currFrame.getHeight()) - height)), 2 * currFrame.getWidth(), 2*currFrame.getHeight(), null);

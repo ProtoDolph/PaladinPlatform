@@ -24,6 +24,7 @@ public class Bat {
     public int frameNum;
     public BufferedImage[] idle = new BufferedImage[4];
     public BufferedImage[] death = new BufferedImage[10];
+    public BufferedImage[] attack = new BufferedImage[9];
     public boolean attacking;
     public boolean flyUP;
     public int count;
@@ -31,6 +32,7 @@ public class Bat {
     public int playerX;
     public int playerY;
     public int blindCount;
+    public int attackCount;
     public Line2D line1;
     public Line2D line2;
     public Line2D line3;
@@ -77,6 +79,7 @@ public class Bat {
         }
         if(attacking && sight){
             blindCount = 0;
+            attackCount++;
         }
         if(attacking && blindCount >= 20){
             attacking = false;
@@ -85,37 +88,70 @@ public class Bat {
         if(!alive){
             attacking = false;
         }
+        if(!attacking){
+            attackCount = 0;
+        }
         if(attacking){
-            if(x > playerX){
-                faceRight = false;
-            } else {
-                faceRight = true;
-            }
-            double tempDY = (playerY - y)/2;
-            double tempDX = (playerX - (x+(width/2)))/2;
-            if(tempDY < 1 && tempDY > -1){
-                if (count > 12) {
-                    flyUP = !flyUP;
-                    ySpeed = 0.02;
-                    count = 0;
+            if(attackCount >= 120) {
+                if(attackCount == 120){
+                    frameNum = 0;
                 }
-                if (flyUP) {
-                    ySpeed -= 0.2;
+                if (x > playerX) {
+                    faceRight = false;
                 } else {
-                    ySpeed += 0.2;
+                    faceRight = true;
+                }
+                double tempDY = (playerY - y) / 2;
+                double tempDX = (playerX - (x + (width / 2))) / 2;
+                if (tempDY < 1 && tempDY > -1) {
+                    if (count > 12) {
+                        flyUP = !flyUP;
+                        ySpeed = 0.02;
+                        count = 0;
+                    }
+                    if (flyUP) {
+                        ySpeed -= 0.2;
+                    } else {
+                        ySpeed += 0.2;
+                    }
+                } else {
+                    ySpeed += tempDY;
+                }
+                if (tempDX < 1 && tempDX > -1) {
+                    if (tempDX > 0) {
+                        xSpeed += 1;
+                    } else {
+                        xSpeed -= 1;
+                    }
+                } else {
+                    xSpeed += tempDX;
                 }
             } else {
-                ySpeed +=  tempDY;
-            }
-            if(tempDX < 1 && tempDX > -1){
+                if (x > playerX) {
+                    faceRight = false;
+                } else {
+                    faceRight = true;
+                }
+                double tempDY = (playerY - y) / 2;
+                double tempDX = (playerX - (x + (width / 2))) / 2;
                 if(tempDX > 0){
-                    xSpeed += 1;
-                } else {
-                    xSpeed -= 1;
+                    tempDX = 1;
+                } else if (tempDX < 0){
+                    tempDX = -1;
                 }
-            } else{
-                xSpeed += tempDX;
+                tempDY = -.2;
+                if(ySpeed < -2){
+                    ySpeed = -2;
+                }
+                xSpeed = tempDX;
+                ySpeed += tempDY;
             }
+            if(attackCount >= 300){
+                attackCount = 0;
+            }
+            attackCount++;
+
+
         } else {
             if (faceRight) {
                 xSpeed += 1;
@@ -169,12 +205,14 @@ public class Bat {
     }
 
     public void draw(Graphics2D gtd){
+        /*
         gtd.setColor(Color.RED);
         gtd.fillRect(x, y, width, height);
         gtd.draw(line1);
         gtd.draw(line2);
         gtd.draw(line3);
         gtd.draw(line4);
+         */
 
         if (faceRight) {
             gtd.drawImage(currFrame, x  + width + (currFrame.getWidth() - width)/2, y - (currFrame.getHeight()-height)/2, -currFrame.getWidth(), (currFrame.getHeight() - height)/2 + height, null);
@@ -234,7 +272,12 @@ public class Bat {
             }
             currFrame = death[frameNum];
 
-        } else {
+        } else if(attacking && attackCount >= 120){
+            if(frameNum >= attack.length){
+                frameNum = 0;
+            }
+            currFrame = attack[frameNum];
+        }else {
             if (frameNum >= idle.length) {
                 frameNum = 0;
             }
@@ -279,6 +322,16 @@ public class Bat {
             death[7] = death[6];
             death[8] = death[6];
             death[9] = death[6];
+
+            attack[0] = ogImage.getSubimage(214,40,iWidth+2, iHeight+8);
+            attack[1] = ogImage.getSubimage(314,55,iWidth,iHeight);
+            attack[2] = ogImage.getSubimage(410,58,iWidth+4,iHeight);
+            attack[3] = ogImage.getSubimage(506,55,iWidth+8,iHeight);
+            attack[4] = attack[3];
+            attack[5] = attack[3];
+            attack[6] = attack[2];
+            attack[7] = attack[1];
+            attack[8] = attack[0];
 
         } catch (IOException e) {
             e.printStackTrace();
