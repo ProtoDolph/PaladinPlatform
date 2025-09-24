@@ -38,6 +38,15 @@ public class Bat {
     public Line2D line3;
     public Line2D line4;
 
+    /**
+     * This is the Bat entity in the platform. This is a flying entity
+     * that uses sight lines to control is behavior. If the bat is able to see the player it will
+     * start attacking it. Otherwise, it will fly back and forth left to right.
+     * @param x The x coordinate the bat spawns at
+     * @param y the Y coordinate that bat spawns at
+     * @param panel the GamePanel the bat is a part of. used as reference to find other entities.
+     */
+
     public Bat(int x, int y, GamePanel panel){
         this.x = x;
         this.y = y;
@@ -56,9 +65,15 @@ public class Bat {
         currFrame = idle[0];
         count = 0;
         attacking = false;
-
-
     }
+
+    /**
+     * This is the update method for the bat.
+     * Everytime this method is called the Bat;s position will be updated,
+     * its speed will be updated, its collision will be checked. Its behavior is updated
+     * It will check to see if it can see the player and see if its attacking
+     * and how long it has been attacking. It will also to check to see if the bat is still alive.
+     */
 
     public void update(){
         checkAlive(panel.player);
@@ -204,6 +219,14 @@ public class Bat {
         count++;
     }
 
+    /**
+     * This draws the bat onto the JFrame using the Graphics2D gtd that is provided.
+     * It will draw the bat based off the image stored in the currFrame variable.
+     * the current frame is then drawn based on what direction the bat is facing
+     * and the size of the bat and the size of the image to avoid distortion while
+     * remains the size of the bat/
+     * @param gtd the graphics/ frame that we are drawing the abt on.
+     */
     public void draw(Graphics2D gtd){
         /*
         gtd.setColor(Color.RED);
@@ -220,6 +243,15 @@ public class Bat {
             gtd.drawImage(currFrame, x - (currFrame.getWidth()-width)/2, y - (currFrame.getHeight()-height)/2, currFrame.getWidth(), (currFrame.getHeight() - height)/2 + height, null);
         }
     }
+
+    /**
+     * This checks to see if the bat can see the player.
+     * It uses 4 line 2d from each of the 4 corners of the bats head and the 4 corners of the player.
+     * bat top left ot player top left, bat bottom right to player bottom right etc…
+     * Then it checks if these lines intersect any tiles.
+     * If 3 of the lines do not intersect any tiles on the map then the bat sees the player
+     * and the sight boolean is set to true otherwise it is set to false;
+     */
     public void checkSight(){
         Player player = panel.player;
         line1 = new Line2D.Double(x + width/4,y,player.x+1, player.y);
@@ -264,13 +296,24 @@ public class Bat {
         }
     }
 
+    /**
+     * This gets the next frame to be drawn on teh frame for the bat.
+     * Using currFrame as the variable that stores the current frame.
+     * and frameNum to keep track of the index number in the BufferedImage[] list.
+     * It first checks to make sure frameNum is a valid index of said image list.
+     * If it isn't frameNum is set to zero and certain animation action booleans are set to false.
+     * Otherwise, it will set currFrame to equal the animation[frameNum] depending on the action the bat is doing.
+     * then it increases frameNum by 1.
+     */
     public void nextFrame(){
         if(dying){
             if(frameNum >= death.length){
                 dying = false;
                 frameNum = 0;
+                currFrame = death[-1];
+            } else {
+                currFrame = death[frameNum];
             }
-            currFrame = death[frameNum];
 
         } else if(attacking && attackCount >= 120){
             if(frameNum >= attack.length){
@@ -285,6 +328,15 @@ public class Bat {
         }
         frameNum++;
     }
+
+    /**
+     * This checks to see if the bat is still alive.
+     * Basically it takes the player supplied in teh arguments.
+     * Player must be part of the same GamePanel as the bat.
+     * Will check if the player is attacking and if its attacking hit box will hit the bat
+     * if it does the bat dies and starts its death animation. Otherwise, it will keep on living.
+     * @param player the player that is on the same GamePanel as the bat.
+     */
     public void checkAlive(Player player){
         if(player.attacking){
             Rectangle p1HitBox;
@@ -301,6 +353,15 @@ public class Bat {
             }
         }
     }
+
+    /**
+     * This loads all the images for all the animations the bat has.
+     * The bat has an idle/flying animation, an attack animation, and a death animation.
+     * This method must be called in the constructor or before any draw() or nextFrame() methods are called.
+     * All frames are sub-images of an image that must be in teh Resources directory with teh correct name.
+     * All sub-images are hard coded with the values needed to make each frame have minimal distortion and
+     * correct placement based off the bat's coordinates and size.
+     */
 
     public void loadImages(){
         try{
@@ -338,6 +399,14 @@ public class Bat {
         }
     }
 
+    /**
+     * Checks the collision in the bat in the Y direction
+     * Does this by temporarily making the bats hit box be where the bat will go
+     * based off its ySpeed. Will prevent the bat from falling or flying up through tiles.
+     * must be called after the ySpeed value has been determined, but before it is added to the y coordinate of
+     * the bat.
+     */
+
     public void checkCollisionY(){
         //bottom collision
         hitBox.y += ySpeed;
@@ -353,6 +422,13 @@ public class Bat {
             }
         }
     }
+    /**
+     * Checks the collision in the bat in the Y direction
+     * Does this by temporarily making the bats hit box be where the bat will go
+     * based off its ySpeed. Will prevent the bat from falling or flying up through tiles.
+     * must be called after the ySpeed value has been determined, but before it is added to the y coordinate of
+     * the bat.
+     */
     public void checkCollisionX(){
         hitBox.x += xSpeed;
         for(Wall wall : panel.walls){

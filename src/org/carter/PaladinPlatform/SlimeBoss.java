@@ -7,6 +7,19 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Random;
 
+/**
+ *
+ * This Slime boss has multiple behavior patterns. Does not rely on sight
+ * as the map the boss is summoned in will not have sight obstruction.
+ * The action booleans control all behavior. Where
+ *  if an action boolean is set to true it will perform that attack.
+ *  No action boolean should be active at the same time. Uses multiple counters
+ *  to keep track of time so that it can cycle between attacks and give the Player a
+ *  chance to hit the boss. Has multiple hit boxes for each attack.
+ *  Attack 1 is a Jab that summons a slime launched at the player.
+ *  Attack 2 is a jump to wards the players' location.
+ *  Attack 3 is a spinning cyclone that goes back and forth.
+ */
 public class SlimeBoss {
     public GamePanel panel;
     public int x;
@@ -43,6 +56,13 @@ public class SlimeBoss {
     public int hurtCounter;
     public boolean alive = true;
 
+    /**
+     * Creates and initializes the Slime Boss entity. Spawns it at the x and  y coordinates provided
+     * then it sets up all of its values. Width, height, images, hit box, action booleans etc...
+     * @param x the x coordinate the slime boss is spawned at.
+     * @param y the y coordinate the slime boss is spawned at.
+     * @param panel the GamePanel the slime boss is on. Used as a reference to other entities.
+     */
     public SlimeBoss(int x, int y, GamePanel panel){
         this.panel = panel;
         this.x = x;
@@ -71,6 +91,16 @@ public class SlimeBoss {
         loadImages();
         currFrame = idle[0];
     }
+
+    /**
+     * This method is the Slime boss's update method
+     * Everytime this is called the boss's position, behavior, speed,
+     * attack, its counters for its attack, its collision are updated.
+     * This method controls all behavior through its action booleans.
+     * No two action booleans should be active at the same with the exception to
+     * hit and 1 other attack. This is inorder to prevent the player from interrupting attacks
+     * and constant stun hitting the boss.
+     */
 
     public void update(){
         if(alive) {
@@ -186,6 +216,16 @@ public class SlimeBoss {
 
 
     }
+
+    /**
+     * This draws the slime boss's current frame.
+     * Based on what attack the boss is doing, I have
+     * the draw code personalized to each frame to remove distortion
+     * while keeping its size in check for the hitBox of each attack.
+     * Will also draw the slime boss facing left or right by inverting the image.
+     * Decides that based of the faceRight boolean value.
+     * @param gtd the Graphics the images are being drawn to.
+     */
     public void draw(Graphics2D gtd){
 
         //gtd.setColor(Color.RED);
@@ -266,6 +306,15 @@ public class SlimeBoss {
         }
     }
 
+    /**
+     * This method is used to update the Slime Boss's memory of the players location
+     * only called when it begins an attack to avoid pinpoint following and unplayable gameplay.
+     * Will check were the player is. Store the coordinates directly in teh middle of teh players hit box
+     * Update its faceRight boolean so that it's facing the player.
+     * Preconditions
+     *  - the SlimeBoss and the Player must be a part of the same GamePanel panel.
+     */
+
     public void checkPlayer(){
         Player player = panel.player;
         playerX = player.x + player.width/2;
@@ -276,6 +325,15 @@ public class SlimeBoss {
         }
     }
 
+    /**
+     * This method gets teh next frame in the animation of the Slime Boss.
+     * Will check which action boolean is active. Dying takes priority. Being hit is bottom priority.
+     * Then it will check to make sure frameNum our frame index counter for our BufferedImage lists
+     * is not greater than or equal to the length of animation BufferedImage lists. If it is it gets set to zero.
+     * Then it will set its current frame, currFrame, to equal the frameNum index in the current animation list.
+     * Then it increases frameNum by 1 for the next time this method is called for the next frame.
+     * Overall it updates animation.
+     */
     public void nextFrame(){
         if(dying){
             if(frameNum >= death.length){
@@ -297,11 +355,11 @@ public class SlimeBoss {
                 slime.setFaceRight(faceRight);
                 slime.setLaunch(true);
                 if(faceRight){
-                    slime.setXspeed(7);
+                    slime.setXSpeed(7);
                 } else{
-                    slime.setXspeed(-7);
+                    slime.setXSpeed(-7);
                 }
-                slime.setYspeed(-3);
+                slime.setYSpeed(-3);
                 panel.slimes.add(slime);
             }
         }
@@ -331,6 +389,21 @@ public class SlimeBoss {
         frameNum++;
     }
 
+    /**
+     * This method loads all the images the Slime Boss needs for animation.
+     * Surrounded in a try catch to track errors and exceptions and to stop the game when one is encountered.
+     * All images are stored in multiple BufferedImages[] lists. Each of the Slime Bosses actions is a separate list.
+     * All frames are created by taking sub images of a sprite sheet. The coordinate values, width, and height of said
+     * sub images are hardcoded so do not change.
+     * Pre-Conditions:
+     *      - All images must be in the Resources Directory.
+     *      - All images must remain with the same title and path directory.
+     *      - All frames are created by taking a subImage so do not change the x, y, width, or height values of said frames.
+     *  Post-Conditions:
+     *      - Must be called in order for the game to run.
+     *      - This method is called in the constructor for that reason.
+     *      - Images must be loaded and stored.
+     */
     public void loadImages(){
         try {
             int iWidth = 48;
@@ -421,6 +494,14 @@ public class SlimeBoss {
             e.printStackTrace();
         }
     }
+
+    /**
+     * This method checks if the Boss is still alive.
+     * First checks if its hp is less than or equal to zero.
+     * then checks to see if it's not already dying.
+     * If both are true. its sets dying to true. frameNUm to zero to start the death animation.
+     * And it sets alive to false since its no longer alive.
+     */
     public void checkAlive(){
         if(hp <= 0 && !dying){
             dying = true;
@@ -428,6 +509,23 @@ public class SlimeBoss {
             alive = false;
         }
     }
+
+    /**
+     * This method checks to see if the Slime Boss is hit by the player.
+     * Checks to see if the player is attacking and facing left or right.
+     * IF attacking. It creates a hit box based off player's orientation.
+     * If player's attacking hit box intersects the boss's hitBox it will take damage.
+     * Will only take damage if hit is false, and it is not in attack3.
+     * Pre-Conditions:
+     *      - The player and Slime Boss must be on the same GamePanel panel.
+     *      - Player must be Alive for player. Attacking to be true.
+     *      - Boss must be alive.
+     * Post-Conditions:
+     *      - if hit will lower the Boss's hp by 10 and start a hit animation only
+     *      if it is not in a middle of an attack.
+     *      - Will make the boss jolt a little when hit.
+     *      - Will update its orientation to face the player.
+     */
     public void checkHit(){
         Player player = panel.player;
         if(player.attacking){
@@ -451,6 +549,19 @@ public class SlimeBoss {
             }
         }
     }
+
+    /**
+     * This makes sure the Slime Boss is on the ground and able to jump
+     * if it does attack2. Checks to see if the onGround boolean is true.
+     * by Checking to see if its hitBox when temporarily pushed to the ground
+     * intersects any tiles. If it is intersecting any tiles below it. It can jump and sets onGround to true.
+     * Pre-Conditions:
+     *      - All tiles and the Slime Boss must be on the same GamePanel panel.
+     *      - the Slime Boss's Rectangle hit box must be defined in the constructor.
+     * Post-Conditions:
+     *      - Returns a boolean deciding whether of not the Boss can jump.
+     * @return the boolean onGround whose value depends on if the Slime boss is on the ground or not.
+     */
     public boolean checkJump(){
         boolean onGround = false;
         for (Wall wall : panel.walls) {
@@ -462,6 +573,18 @@ public class SlimeBoss {
         }
         return onGround;
     }
+
+    /**
+     * Handles the Slime Boss's collision in the Y direction.
+     * Prevents any phasing through tiles whether falling or jumping.
+     * Uses the walls' hit boxes and its own to decided. Will set its hit Box
+     * to be temporarily where it will go based on its ySpeed. If that temp hit Box
+     * intersects anything. It will lower ySpeed until the temp Hit Box isn't intersecting anything.
+     * Pre-conditions:
+     *      - walls and the Slime Boss must be on the same GamePanel panel
+     * Post-Conditions:
+     *      - Make sure that the Slime Boss properly collides with Wall objects
+     */
     public void checkCollisionY(){
         //bottom collision
         hitBox.y += ySpeed;
@@ -475,6 +598,17 @@ public class SlimeBoss {
             }
         }
     }
+    /**
+     * Handles the Slime Boss's collision in the X direction.
+     * Prevents any phasing through tiles when its moving.
+     * Uses the walls' hit boxes and its own to decided. Will set its hit Box
+     * to be temporarily where it will go based on its xSpeed. If that temp hit Box
+     * intersects anything. It will lower xSpeed until the temp Hit Box isn't intersecting anything.
+     * Pre-conditions:
+     *      - walls and the Slime Boss must be on the same GamePanel panel
+     * Post-Conditions:
+     *      - Make sure that the Slime Boss properly collides with Wall objects
+     */
     public void checkCollisionX(){
         hitBox.x += xSpeed;
         for(Wall wall : panel.walls){

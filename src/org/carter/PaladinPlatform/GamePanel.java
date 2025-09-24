@@ -59,19 +59,19 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
      * This GamePanel handles every single entity, update, compiles the graphics, creates the levels.
      * It stores every tile, bat, slime, boss, spike and player. And it updates them and tells the MainFrame to draw them.
      * This keeps tracks of every Level through the level methods.
-     * It uses a game timer to handle all of the updates at a 60 fps.
+     * It uses a game timer to handle all the updates at a 60 fps.
      * It updates each frame at 12 FPS.
      * It takes the KeyChecker from teh MainFrame checks what key was pressed and if it is important to update player.
      * Uses multiple BufferedImages, ArrayLists,  boolean, doubles and integers to keep track of everything in the game.
      * There are multiple instances of in line comments explaining what stuff does since as soon as this is called as a constructor
-     * to a Jframe the game will run.
+     * to a JFrame the game will run.
      */
     public GamePanel(){
 
         //Creates the player
         player = new Player(65,512,this);
 
-        //loads all of the images
+        //loads all the images
         loadImages();
         bossWin = false;
         //initializes the level and creates the first level.
@@ -296,10 +296,10 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
      * If it isn't on the current frame it doesn't exist and thus doesn't paint
      * Also called with the repaint() method.
      * Preconditions:
-     *  - ALl of the images must be loaded into the game with the loadImage() method
+     *  - All the images must be loaded into the game with the loadImage() method
      *  - Requires said images to have the correct file path name and be present.
      * Post:
-     *  - paints all of the images of every tile, player, slime, bat, boss, spike, flag onto the background.
+     *  - paints all the images of every tile, player, slime, bat, boss, spike, flag onto the background.
      * @param g  the <code>Graphics</code> context in which to paint
      */
 
@@ -343,7 +343,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     /**
      * Makes Level  1 and has if conditions to check what part of level 1 the player is on via
      * screenX and screenY to keep track of what cell.
-     * Also creates all of the entities and tiles for that level and adds them to their corresponding lists.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
     public void makeLv1(){
         flagVisible = false;
@@ -380,7 +380,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     /**
      * Makes Level 2 and has if conditions to check what part of level 1 the player is on via
      * screenX and screenY to keep track of what cell.
-     * Also creates all of the entities and tiles for that level and adds them to their corresponding lists.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
     public void makeLv2(){
         flagVisible = false;
@@ -411,7 +411,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     /**
      * Makes Level 3 and has if conditions to check what part of level 1 the player is on via
      * screenX and screenY to keep track of what cell.
-     * Also creates all of the entities and tiles for that level and adds them to their corresponding lists.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
     public void makeLv3(){
         flagVisible = false;
@@ -504,7 +504,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     /**
      * Makes Level 4 and has if conditions to check what part of level 1 the player is on via
      * screenX and screenY to keep track of what cell.
-     * Also creates all of the entities and tiles for that level and adds them to their corresponding lists.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
     public void makeLv4(){
         flagVisible = false;
@@ -527,7 +527,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     }
 
     /**
-     * Loads all of the images for every single entity, tile, flag,background, spike.
+     * Loads all the images for every single entity, tile, flag,background, spike.
      * Surrounded in a try catch to analyze exceptions and prevent total crash out if it fails.
      * If it does fail the game will stop.
      * Entities such as the Bat, Slime, and the Slime Boss. Their load images are prebuilt in their
@@ -536,8 +536,8 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
      *  - All images must be in the correct filepath and with the correct name
      *  - all images must be present
      *  - All images must be in either .png or .jpeg and in the Resources directory.
-     *  Postconditions:
-     *    - assigns images to their to their correct storage value for animation and drawing.
+     *  Post conditions:
+     *    - assigns images to their correct storage value for animation and drawing.
      */
 
     public void loadImages(){
@@ -553,8 +553,8 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     }
 
     /**
-     * Action perfromed event that is overridden by the KeyChecker.
-     * Not Extremely used but allows the event to be proccessed by the
+     * Action performed event that is overridden by the KeyChecker.
+     * Not Extremely used but allows the event to be processed by the
      * keyPressed() and keyReleased()
      * @param e the event to be processed
      */
