@@ -29,7 +29,7 @@ public class Wall {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.image = image;
+        this.image = image.getSubimage(0,0,width, height);
         hitBox = new Rectangle(x,y,width,height);
 
     }
@@ -55,7 +55,7 @@ public class Wall {
      * @param gtd the GamePanel Graphics2D to draw the tile on.
      */
     public void draw(Graphics2D gtd){
-        gtd.drawImage(image,x,y,null);
+        gtd.drawImage(image,x,y,width, height,null);
         gtd.setColor(Color.BLACK);
         gtd.draw(hitBox);
 

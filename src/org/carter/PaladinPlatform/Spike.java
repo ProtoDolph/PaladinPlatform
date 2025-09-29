@@ -27,7 +27,7 @@ public class Spike {
         this.width = width;
         this.height = height;
         this.image = image;
-        hitBox = new Rectangle(x,y,width,height);
+        hitBox = new Rectangle(x,y,width,Math.abs(height));
     }
 
     /**
@@ -36,6 +36,10 @@ public class Spike {
      * @param gtd the GamePanel graphics that will draw the spike.
      */
     public void draw(Graphics2D gtd){
-        gtd.drawImage(image, x, y, width, height, null);
+        if(height < 0){
+            gtd.drawImage(image, x, y -height, width, height, null);
+        } else {
+            gtd.drawImage(image, x, y, width, height, null);
+        }
     }
 }

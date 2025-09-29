@@ -39,8 +39,11 @@ public class Player {
     boolean jumping;
     boolean hit;
     boolean invulnerable;
-    int playerHP;
+    double playerHP;
+    int maxHP;
     boolean alive;
+    boolean healing;
+    int healCounter;
     boolean dying;
 
     //frames
@@ -51,6 +54,7 @@ public class Player {
     BufferedImage[] jump = new BufferedImage[11];
     BufferedImage[] hurt = new BufferedImage[6];
     BufferedImage[] dead = new BufferedImage[16];
+    BufferedImage[] heal = new BufferedImage[10];
 
     int motion;  // idle  = 0;  walk = 1; jump = 2; attack = 3;
     boolean facingLeft;
@@ -79,7 +83,8 @@ public class Player {
         stopSpeed = 0.7;
         jumpSpeed = -7.2;
         fallSpeed = 0.3;
-        playerHP = 100;
+        maxHP = 100;
+        playerHP = maxHP;
 
         hit = false;
         invulnerable = false;
@@ -137,6 +142,23 @@ public class Player {
             xSpeed = -maxSpeed;
         }
 
+        // healing.
+        if(keyDown && !keyRight && !keyLeft && !jumping && !keyUp && !keySpace && !attacking && !hit){
+            hitBox.y++;
+            //Checks to see if we are on the ground.
+            for(Wall wall : panel.walls){
+                if(wall.hitBox.intersects(hitBox)){
+                    healing = true;
+                    if(healCounter == 0){
+                        frameNum = 0;
+                    }
+                }
+            }
+            hitBox.y--;
+        }else {
+            healing = false;
+        }
+
         //Jumping
         if (keyUp) {
             hitBox.y++;
@@ -185,6 +207,18 @@ public class Player {
         if (jumping) {
             motion = 2;
         }
+        if(healing){
+            xSpeed = 0;
+            healCounter++;
+            if(healCounter >= 30){
+                playerHP += .2;
+            }
+            if(playerHP >= maxHP){
+                playerHP = maxHP;
+            }
+        } else {
+            healCounter = 0;
+        }
 
         if(dying){
             xSpeed = 0;
@@ -213,7 +247,7 @@ public class Player {
     public void draw(Graphics2D gtd){
         //Frame check
         // Collision Box and Attack Hit Box.
-    /*
+/*
         gtd.setColor(Color.YELLOW);
         gtd.fillRect(x,y,width,height);
 
@@ -225,8 +259,8 @@ public class Player {
                 gtd.fillRect(x + width/2, y, 2*width, height);
             }
         }
+*/
 
-     */
 
         if(facingLeft){
             if(currFrame == attack[3]){
@@ -243,10 +277,12 @@ public class Player {
             }
         }
         gtd.setColor(Color.RED);
-        int hpWidth = playerHP * 2;
+        int hpWidth = (int) Math.round(playerHP * 2);
         gtd.fillRect(0,0,hpWidth, 32);
         gtd.setColor(Color.BLACK);
-        gtd.drawRect(0,0,200,32);
+        gtd.setStroke(new BasicStroke(5));
+        gtd.drawRect(0,0,maxHP*2,32);
+        gtd.setStroke(new BasicStroke(1));
     }
 
     /**
@@ -332,6 +368,7 @@ public class Player {
                         }
                     }
                     hit = true;
+                    healing = false;
                 }
             }
         }
@@ -341,7 +378,6 @@ public class Player {
                     if (!hit) {
                         frameNum = 0;
                         playerHP -= 10;
-                        ySpeed = 3 * (jumpSpeed / 4);
                         attacking = false;
                         if (facingLeft) {
                             xSpeed -= 2 * jumpSpeed;
@@ -350,6 +386,7 @@ public class Player {
                         }
                     }
                     hit = true;
+                    healing = false;
                 }
             }
         }
@@ -368,6 +405,7 @@ public class Player {
                         }
                     }
                     hit = true;
+                    healing = false;
                 }
             }
         }
@@ -386,6 +424,7 @@ public class Player {
                         }
                     }
                     hit = true;
+                    healing = false;
                 }
                 if(boss.attack1){
                     if(hitBox.intersects(boss.atk1HitBox) && boss.currFrame == boss.atk1[7]){
@@ -401,6 +440,7 @@ public class Player {
                             }
                         }
                         hit = true;
+                        healing =  false;
                     }
                 }
                 if(boss.attack3){
@@ -417,6 +457,7 @@ public class Player {
                             }
                         }
                         hit = true;
+                        healing = false;
                     }
                 }
             }
@@ -431,7 +472,7 @@ public class Player {
      *  and the game ends.
      */
     public void checkDead(){
-        if(playerHP <= 0){
+        if(playerHP <= 0 && alive){
             alive = false;
             dying = true;
         }
@@ -523,6 +564,18 @@ public class Player {
             dead[14] = dead[10];
             dead[15] = dead[10];
 
+            BufferedImage ogHeal = ImageIO.read(getClass().getResourceAsStream("/Knight_1/Defend.png"));
+            heal[0] = ogHeal.getSubimage(16,64, iWidth, height);
+            heal[1] = ogHeal.getSubimage(144,64, iWidth, height);
+            heal[2] = ogHeal.getSubimage(271,64, iWidth, height);
+            heal[3] = ogHeal.getSubimage(399,64, iWidth, height);
+            heal[4] = ogHeal.getSubimage(528,64, iWidth, height);
+            heal[5] = heal[4];
+            heal[6] = heal[3];
+            heal[7] = heal[2];
+            heal[8] = heal[1];
+            heal[9] = heal[0];
+
 
         }catch(Exception e){
             e.printStackTrace();
@@ -546,7 +599,7 @@ public class Player {
             if(frameNum >= dead.length){
                 dying = false;
                 frameNum = 0;
-                currFrame = dead[-1];
+                currFrame = dead[dead.length -1];
             }else {
                 currFrame = dead[frameNum];
             }
@@ -557,6 +610,12 @@ public class Player {
                 frameNum = 0;
             }
             currFrame = hurt[frameNum];
+            frameNum++;
+        }else if(healing){
+            if(frameNum >= heal.length){
+                frameNum = 0;
+            }
+            currFrame = heal[frameNum];
             frameNum++;
         }else if(attacking){
             if(frameNum >= attack.length){

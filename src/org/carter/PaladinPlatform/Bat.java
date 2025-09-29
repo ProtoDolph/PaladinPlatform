@@ -150,16 +150,19 @@ public class Bat {
                 double tempDY = (playerY - y) / 2;
                 double tempDX = (playerX - (x + (width / 2))) / 2;
                 if(tempDX > 0){
-                    tempDX = 1;
-                } else if (tempDX < 0){
                     tempDX = -1;
+                } else if (tempDX <= 0){
+                    tempDX = 1;
                 }
-                tempDY = -.2;
-                if(ySpeed < -2){
-                    ySpeed = -2;
+                tempDY = -.1;
+                if(ySpeed < -1){
+                    ySpeed = -1;
                 }
                 xSpeed = tempDX;
                 ySpeed += tempDY;
+            }
+            if(panel.player.hit){
+                attackCount = 0;
             }
             if(attackCount >= 300){
                 attackCount = 0;
@@ -205,9 +208,12 @@ public class Bat {
             faceRight = true;
             xSpeed = 1;
         }
+        if(y<=0) {
+            ySpeed = 1;
+        }
         if(dying){
             xSpeed = 0;
-            ySpeed = 1;
+            ySpeed = 2;
         }
 
         int dx = (int) Math.round(xSpeed);
@@ -237,6 +243,7 @@ public class Bat {
         gtd.draw(line4);
          */
 
+
         if (faceRight) {
             gtd.drawImage(currFrame, x  + width + (currFrame.getWidth() - width)/2, y - (currFrame.getHeight()-height)/2, -currFrame.getWidth(), (currFrame.getHeight() - height)/2 + height, null);
         } else {
@@ -254,9 +261,9 @@ public class Bat {
      */
     public void checkSight(){
         Player player = panel.player;
-        line1 = new Line2D.Double(x + width/4,y,player.x+1, player.y);
+        line1 = new Line2D.Double(x + width/4,y+1,player.x+1, player.y);
         line2 = new Line2D.Double(x + width/4, y+height, player.x+1, player.y +player.height-1);
-        line3 = new Line2D.Double(x +width - width/4 , y, player.x + player.width -1, player.y);
+        line3 = new Line2D.Double(x +width - width/4 , y+1, player.x + player.width -1, player.y);
         line4 = new Line2D.Double(x+ width - width/4, y+height,player.x+player.width-1, player.y + player.height-1);
         boolean sight1 = true;
         boolean sight2 = true;
@@ -310,7 +317,7 @@ public class Bat {
             if(frameNum >= death.length){
                 dying = false;
                 frameNum = 0;
-                currFrame = death[-1];
+                currFrame = death[death.length - 1];
             } else {
                 currFrame = death[frameNum];
             }
@@ -341,9 +348,9 @@ public class Bat {
         if(player.attacking){
             Rectangle p1HitBox;
             if(player.facingLeft){
-                p1HitBox = new Rectangle(player.x - player.width - player.width/2, player.y, 2*player.width, player.height);
+                p1HitBox = new Rectangle(player.x - player.width - player.width/2, player.y-1, 2*player.width, player.height+2);
             }else {
-                p1HitBox = new Rectangle(player.x + player.width/2, player.y, player.width * 2, player.height);
+                p1HitBox = new Rectangle(player.x + player.width/2, player.y-1, player.width * 2, player.height+2);
             }
             if(p1HitBox.intersects(hitBox)){
                 alive = false;
@@ -362,7 +369,6 @@ public class Bat {
      * All sub-images are hard coded with the values needed to make each frame have minimal distortion and
      * correct placement based off the bat's coordinates and size.
      */
-
     public void loadImages(){
         try{
             int iWidth = 64;
@@ -405,8 +411,9 @@ public class Bat {
      * based off its ySpeed. Will prevent the bat from falling or flying up through tiles.
      * must be called after the ySpeed value has been determined, but before it is added to the y coordinate of
      * the bat.
+     * Pre-Conditions:
+     *      - Bat and walls must be on the same GamePanel panel.
      */
-
     public void checkCollisionY(){
         //bottom collision
         hitBox.y += ySpeed;
@@ -428,6 +435,8 @@ public class Bat {
      * based off its ySpeed. Will prevent the bat from falling or flying up through tiles.
      * must be called after the ySpeed value has been determined, but before it is added to the y coordinate of
      * the bat.
+     * Pre-Conditions:
+     *      - Bat and walls must be on the same GamePanel panel.
      */
     public void checkCollisionX(){
         hitBox.x += xSpeed;

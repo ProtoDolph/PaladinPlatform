@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,8 +18,8 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     //player
     Player player;
     //dimensions
-    int screenWidth = 640;
-    int screenHeight = 640;
+    int screenWidth = 672;
+    int screenHeight = 672;
 
     int blockWidth = 32;
     int blockHeight = 32;
@@ -43,6 +44,16 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     boolean flagVisible;
     //background
     BufferedImage background;
+    BufferedImage wKey;
+    BufferedImage aKey;
+    BufferedImage sKey;
+    BufferedImage dKey;
+    BufferedImage spaceKey;
+    boolean keyPress;
+    int keyCount;
+    // healing
+    ArrayList<HealingParticle> heals = new ArrayList<>();
+    Random rand = new Random();
     //Spike
     ArrayList<Spike> spikes = new ArrayList<>();
     BufferedImage spikeImage;
@@ -61,7 +72,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
      * This keeps tracks of every Level through the level methods.
      * It uses a game timer to handle all the updates at a 60 fps.
      * It updates each frame at 12 FPS.
-     * It takes the KeyChecker from teh MainFrame checks what key was pressed and if it is important to update player.
+     * It takes the KeyChecker from the MainFrame checks what key was pressed and if it is important to update player.
      * Uses multiple BufferedImages, ArrayLists,  boolean, doubles and integers to keep track of everything in the game.
      * There are multiple instances of in line comments explaining what stuff does since as soon as this is called as a constructor
      * to a JFrame the game will run.
@@ -69,7 +80,7 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
     public GamePanel(){
 
         //Creates the player
-        player = new Player(65,512,this);
+        player = new Player(35,512,this);
 
         //loads all the images
         loadImages();
@@ -119,6 +130,12 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                         makeLv3();
                     } else if (level == 4){
                         makeLv4();
+                    } else if (level == 5){
+                        makeLv5();
+                    } else if (level == 6){
+                        makeLv6();
+                    } else if (level == 7){
+                        makeLv7();
                     }
                 }
 
@@ -149,6 +166,12 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                         makeLv3();
                     } else if( level == 4){
                         makeLv4();
+                    } else if (level == 5){
+                        makeLv5();
+                    } else if (level == 6){
+                        makeLv6();
+                    } else if (level == 7){
+                        makeLv7();
                     }
                     // Checks if the player walks off the left side of the frame
                 } else if (player.x <= 0){
@@ -166,9 +189,40 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                         makeLv3();
                     } else if (level == 4){
                         makeLv4();
+                    } else if (level == 5){
+                        makeLv5();
+                    } else if (level == 6){
+                        makeLv6();
+                    } else if (level == 7){
+                        makeLv7();
                     }
                     player.x = screenWidth - 32;
                     player.hitBox.x = player.x;
+                }
+                if(player.y >= screenHeight -32){
+                    screenY++;
+                    walls.clear();
+                    slimes.clear();
+                    spikes.clear();
+                    bosses.clear();
+                    bats.clear();
+                    if(level == 1){
+                        makeLv1();
+                    } else if(level == 2){
+                        makeLv2();
+                    } else if (level == 3){
+                        makeLv3();
+                    } else if (level == 4){
+                        makeLv4();
+                    } else if (level == 5){
+                        makeLv5();
+                    } else if (level == 6){
+                        makeLv6();
+                    } else if (level == 7){
+                        makeLv7();
+                    }
+                    player.y = 1;
+                    player.hitBox.y = player.y;
                 }
                 /*
                 Updates all the slimes on teh current cell or level.
@@ -210,12 +264,48 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                         if (boss.hp <= 0 && !boss.dying && !boss.alive) {
                             bosses.remove(boss);
                             bossWin = true;
+                            screenX++;
+                            walls.clear();
+                            slimes.clear();
+                            spikes.clear();
+                            bosses.clear();
+                            bats.clear();
+                            if(level == 1){
+                                makeLv1();
+                            } else if(level == 2){
+                                makeLv2();
+                            } else if (level == 3){
+                                makeLv3();
+                            } else if (level == 4){
+                                makeLv4();
+                            } else if (level == 5){
+                                makeLv5();
+                            } else if (level == 6){
+                                makeLv6();
+                            } else if (level == 7){
+                                makeLv7();
+                            }
                             break;
                         }
                     }
                 }
 
                 player.set();//The Player Update method
+                if(player.healing){
+                    if(heals.size() <= 30) {
+                        if(count == 2 || count == 4) {
+                            heals.add(new HealingParticle(rand.nextInt(player.x, player.x + player.width), player.y + player.height,
+                                    rand.nextInt(2, 5)));
+                        }
+                    }
+                }
+                for(HealingParticle particle : heals){
+                    particle.update();
+                    if(particle.time >= 60){
+                        heals.remove(particle);
+                        break;
+                    }
+                }
 
                 /*
                 Checks for each slime if the slime is hit by the player
@@ -251,6 +341,11 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                             break;
                         }
                     }
+                    keyCount++;
+                    if(keyCount >= 10) {
+                        keyPress = !keyPress;
+                        keyCount = 0;
+                    }
                     count = 0;
                 }
                 /*
@@ -278,12 +373,8 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
                 or if the player beats the boss
                  */
                 if(!player.alive && !player.dying){
-                    gameTimer.cancel();
                     running = false;
-                }
-                if(bossWin){
                     gameTimer.cancel();
-                    running = false;
                 }
             }
         }, 0,1000/fps);
@@ -302,18 +393,190 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
      *  - paints all the images of every tile, player, slime, bat, boss, spike, flag onto the background.
      * @param g  the <code>Graphics</code> context in which to paint
      */
-
     public void paint(Graphics g){
         super.paint(g);
         gtd = (Graphics2D) g;
         gtd.drawImage(background,0,0,screenWidth,screenHeight,null);
         if(running) {
+            if(level == 1){
+              if(screenX == 0){
+                  gtd.setColor(Color.WHITE);
+                  gtd.setFont(new Font("Apple Chancery",Font.BOLD, 31));
+                  gtd.drawString("MOVE", 32*9 + 8,32*6);
+                  gtd.drawString("MOVE", 32*9 + 7,32*6);
+                  gtd.drawString("MOVE", 32*9 + 9,32*6);
+                  gtd.drawString("MOVE", 32*9 + 6,32*6);
+                  gtd.drawString("MOVE", 32*9 + 8,32*6 + 1);
+                  gtd.drawString("MOVE", 32*9 + 8,32*6 - 1);
+                  gtd.setColor(Color.BLACK);
+                  gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                  gtd.drawString("MOVE", 32*9 + 8,32*6);
+
+                  if(keyPress){
+                      gtd.drawImage(aKey, 32 * 8 - 1, 32 * 7+7, 50, 50, null);
+                      gtd.drawImage(dKey, 32 * 11 + 25, 32 * 7+7, 50, 50, null);
+                  } else {
+                      gtd.drawImage(aKey, 32 * 8 - 8, 32 * 7, 64, 64, null);
+                      gtd.drawImage(dKey, 32 * 11 + 18, 32 * 7, 64, 64, null);
+                  }
+              } else if(screenX == 1){
+                  gtd.setColor(Color.WHITE);
+                  gtd.setFont(new Font("Apple Chancery",Font.BOLD, 31));
+                  gtd.drawString("JUMP", 32*9 + 8,32*6);
+                  gtd.drawString("JUMP", 32*9 + 7,32*6);
+                  gtd.drawString("JUMP", 32*9 + 9,32*6);
+                  gtd.drawString("JUMP", 32*9 + 6,32*6);
+                  gtd.drawString("JUMP", 32*9 + 8,32*6 + 1);
+                  gtd.drawString("JUMP", 32*9 + 8,32*6 - 1);
+                  gtd.setColor(Color.BLACK);
+                  gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                  gtd.drawString("JUMP", 32*9 + 8,32*6);
+
+                  if(keyPress){
+                      gtd.drawImage(wKey,32*9 + 25,32*7 + 7,50,50,null);
+                  } else {
+                      gtd.drawImage(wKey,32*9 + 18,32*7,64,64,null);
+                  }
+              } else if(screenX == 2){
+                  gtd.setColor(Color.WHITE);
+                  gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                  gtd.drawString("GO TO", 32*9 + 8,32*5);
+                  gtd.drawString("GO TO", 32*9 + 7,32*5);
+                  gtd.drawString("GO TO", 32*9 + 9,32*5);
+                  gtd.drawString("GO TO", 32*9 + 6,32*5);
+                  gtd.drawString("GO TO", 32*9 + 8,32*5 + 1);
+                  gtd.drawString("GO TO", 32*9 + 8,32*5 - 1);
+                  gtd.drawString("NEXT LEVEL", 32*8-12,32*7-12);
+                  gtd.drawString("NEXT LEVEL", 32*8-11,32*7-12);
+                  gtd.drawString("NEXT LEVEL", 32*8-13,32*7-12);
+                  gtd.drawString("NEXT LEVEL", 32*8-12,32*7-11);
+                  gtd.drawString("NEXT LEVEL", 32*8-12,32*7-13);
+                  gtd.setColor(Color.BLACK);
+                  gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                  gtd.drawString("GO TO", 32*9 + 8,32*5);
+                  gtd.drawString("NEXT LEVEL", 32*8-12,32*7-12);
+              }
+            }
+            else if (level == 2){
+                if(screenX == 0){
+                    gtd.setColor(Color.WHITE);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("HOLD", 32*9 + 8,32*6);
+                    gtd.drawString("HOLD", 32*9 + 7,32*6);
+                    gtd.drawString("HOLD", 32*9 + 9,32*6);
+                    gtd.drawString("HOLD", 32*9 + 6,32*6);
+                    gtd.drawString("HOLD", 32*9 + 8,32*6 + 1);
+                    gtd.drawString("HOLD", 32*9 + 8,32*6 - 1);
+                    gtd.drawString("SPIKES!", 32*9, 32*5-12);
+                    gtd.drawString("SPIKES!", 32*9 - 1, 32*5-12);
+                    gtd.drawString("SPIKES!", 32*9 + 1, 32*5-12);
+                    gtd.drawString("SPIKES!", 32*9, 32*5-11);
+                    gtd.drawString("SPIKES!", 32*9, 32*5-13);
+                    gtd.drawString("SPIKES!", 32*9 + 2, 32*5-12);
+                    gtd.setColor(Color.BLACK);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("HOLD", 32*9 + 8,32*6);
+                    gtd.drawString("SPIKES!", 32*9, 32*5-12);
+
+                    if(keyPress){
+                        gtd.drawImage(wKey,32*9 + 27,32*7 + 7,50,50,null);
+                    } else {
+                        gtd.drawImage(wKey,32*9 + 20,32*7,64,64,null);
+                    }
+                }
+                else if (screenX == 1){
+                    gtd.setColor(Color.WHITE);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("ATTACK", 32*8+20,32*6);
+                    gtd.drawString("ATTACK", 32*8+19,32*6);
+                    gtd.drawString("ATTACK", 32*8+21,32*6);
+                    gtd.drawString("ATTACK", 32*8+22,32*6);
+                    gtd.drawString("ATTACK", 32*8+20,32*6-1);
+                    gtd.drawString("ATTACK", 32*8+20,32*6+1);
+
+                    gtd.drawString("SLIME!", 32*9, 32*5-12);
+                    gtd.drawString("SLIME!", 32*9 - 1, 32*5-12);
+                    gtd.drawString("SLIME!", 32*9 + 1, 32*5-12);
+                    gtd.drawString("SLIME!", 32*9, 32*5-11);
+                    gtd.drawString("SLIME!", 32*9, 32*5-13);
+                    gtd.drawString("SLIME!", 32*9 + 2, 32*5-12);
+                    gtd.setColor(Color.BLACK);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("ATTACK", 32*8+20 ,32*6);
+                    gtd.drawString("SLIME!", 32*9, 32*5-12);
+
+                    if(keyPress){
+                        gtd.drawImage(spaceKey,32*9 +3,32*7 + 7,100,50,null);
+                    } else {
+                        gtd.drawImage(spaceKey,32*9 -9 ,32*7,128,64,null);
+                    }
+
+                }
+                else if (screenX == 2){
+                    gtd.setColor(Color.WHITE);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("HOLD", 32*9 + 8,32*6);
+                    gtd.drawString("HOLD", 32*9 + 7,32*6);
+                    gtd.drawString("HOLD", 32*9 + 9,32*6);
+                    gtd.drawString("HOLD", 32*9 + 6,32*6);
+                    gtd.drawString("HOLD", 32*9 + 8,32*6 + 1);
+                    gtd.drawString("HOLD", 32*9 + 8,32*6 - 1);
+                    gtd.drawString("HEAL", 32*9+8, 32*5-12);
+                    gtd.drawString("HEAL", 32*9 + 7, 32*5-12);
+                    gtd.drawString("HEAL", 32*9 + 9, 32*5-12);
+                    gtd.drawString("HEAL", 32*9+8, 32*5-11);
+                    gtd.drawString("HEAL", 32*9+8, 32*5-13);
+                    gtd.drawString("HEAL", 32*9 + 10, 32*5-12);
+                    gtd.setColor(Color.BLACK);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("HOLD", 32*9 + 8,32*6);
+                    gtd.drawString("HEAL", 32*9+9, 32*5-12);
+
+                    if(keyPress){
+                        gtd.drawImage(sKey,32*9 + 27,32*7 + 7,50,50,null);
+                    } else {
+                        gtd.drawImage(sKey,32*9 + 20,32*7,64,64,null);
+                    }
+                }
+            }
+            else if (level == 4){
+                if(screenX == 0){
+                    gtd.setColor(Color.WHITE);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 31));
+                    gtd.drawString("BAT!", 32*9 + 13,32*6);
+                    gtd.drawString("BAT!", 32*9 + 12,32*6);
+                    gtd.drawString("BAT!", 32*9 + 14,32*6);
+                    gtd.drawString("BAT!", 32*9 + 11, 32*6);
+                    gtd.drawString("BAT!", 32*9 + 13,32*6 + 1);
+                    gtd.drawString("BAT!", 32*9 + 13,32*6 - 1);
+                    gtd.setColor(Color.BLACK);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("BAT!", 32*9 + 13,32*6);
+                }
+            }
+            else if(level == 7){
+                if(screenX == 2 && screenY == 1){
+                    gtd.setColor(Color.BLACK);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("YOU WIN!", 32*8+14,32*7-12);
+                    gtd.drawString("YOU WIN!", 32*8+13,32*7-12);
+                    gtd.drawString("YOU WIN!", 32*8+15,32*7-12);
+                    gtd.drawString("YOU WIN!", 32*8+14,32*7-11);
+                    gtd.drawString("YOU WIN!", 32*8+14,32*7-13);
+                    gtd.setColor(Color.YELLOW);
+                    gtd.setFont(new Font("Apple Chancery",Font.BOLD, 30));
+                    gtd.drawString("YOU WIN!", 32*8+14,32*7-12);
+                }
+            }
             for (Wall wall : walls) {
                 wall.draw(gtd);
             }
             player.draw(gtd);
             if (flagVisible) {
                 flag.draw(gtd);
+            }
+            for(HealingParticle particle : heals){
+                particle.draw(gtd);
             }
             for (Spike spike : spikes) {
                 spike.draw(gtd);
@@ -327,11 +590,6 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
             for (SlimeBoss boss : bosses){
                 boss.draw(gtd);
             }
-        }else if(bossWin){
-            gtd.setColor(Color.RED);
-            gtd.setFont(new Font("TimesRoman",Font.BOLD, 30));
-            gtd.drawString("GAME OVER", 230, 320);
-            gtd.drawString("YOU WIN!",230,450);
         }else{
             gtd.setColor(Color.RED);
             gtd.setFont(new Font("TimesRoman",Font.BOLD, 30));
@@ -351,65 +609,123 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
             for (int i = 0; i < screenWidth; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 0; i < 7; i++){
-                walls.add(new Wall(i*32, 32*10, blockWidth, blockHeight, brickImage));
-                walls.add(new Wall((i+9)*32, 32*10, blockWidth, blockHeight, brickImage));
-
+            for(int i = 0; i < screenHeight -32; i += 32){
+                walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
             }
-            walls.add(new Wall(32, screenHeight - 96, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32, screenHeight - (32 * 4), blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32, screenHeight - (32 * 5), blockWidth, blockHeight, brickImage));
+        } else if (screenX == 1){
+            for (int i = 0; i < screenWidth; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 11; i ++){
+                walls.add(new Wall(screenWidth-32, 32 * (i + 9), blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(screenWidth - 32, 0, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(screenWidth - 32, 32*1, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(screenWidth - 32, 32*2, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(screenWidth - 32, 32*3, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*4, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*7, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*8, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*10, 32*13, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*13, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*14, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*9, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*9, blockWidth, blockHeight, brickImage));
 
-            bats.add(new Bat(32*5, 32*6, this));
-        }
-        if (screenX == 1){
+        } else if(screenX == 2){
             flagVisible = true;
             for (int i = 0; i < screenWidth; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            walls.add(new Wall(screenWidth -64, screenHeight - 96, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(screenWidth - 64, screenHeight - (32 * 4), blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(screenWidth -64, screenHeight - (32*5), blockWidth, blockHeight, brickImage));
-            flag = new Flag(screenWidth - 96, screenHeight - 96, blockWidth, blockHeight, flagImage);
-            spikes.add(new Spike(320,544,blockWidth,blockHeight,spikeImage));
-            spikes.add(new Spike(352,544,blockWidth,blockHeight,spikeImage));
+            for(int i = 0; i < 19; i ++){
+                walls.add(new Wall(screenWidth-32, 32 * i , blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 11; i ++){
+                walls.add(new Wall(0, 32 * (i + 9), blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 6; i++){
+                walls.add(new Wall(32*(i+3),32*8, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*3,32*(i+3), blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 4; i++){
+                walls.add(new Wall(32 * i, 32*3, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(0, 0, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(0, 32*1, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(0, 32*2, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(0, 32*3, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*14, 32*12, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*12, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*14, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*14, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*16, 32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*18, blockWidth, blockHeight, brickImage));
 
+            flag = new Flag(32*5, 32*6, blockWidth, 2*blockHeight, flagImage);
         }
+
     }
 
     /**
-     * Makes Level 2 and has if conditions to check what part of level 1 the player is on via
+     * Makes Level 2 and has if conditions to check what part of level 2 the player is on via
      * screenX and screenY to keep track of what cell.
      * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
     public void makeLv2(){
         flagVisible = false;
         if(screenX == 0) {
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < screenHeight -32; i += 32){
+                walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*7, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*18,blockWidth, blockHeight, brickImage));
+            for(int i = 0; i < 7; i++){
+                spikes.add(new Spike(32*(i+8), 32*18,  blockWidth, blockHeight, spikeImage));
+            }
+        }
+        else if (screenX == 1) {
             for (int i = -32; i < screenWidth+32; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            walls.add(new Wall(32, screenHeight - 96, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32, screenHeight - (32 * 4), blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32, screenHeight - (32 * 5), blockWidth, blockHeight, brickImage));
-            slimes.add(new Slime(320,512,this));
-
+            Slime s = new Slime(32*14,32*18,this);
+            s.setFaceRight(true);
+            slimes.add(s);
         }
-        if (screenX == 1) {
+        else if  (screenX == 2){
             flagVisible = true;
-            for (int i = -32; i < screenWidth+32; i += 32) {
+            for (int i = 0; i < screenWidth; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            walls.add(new Wall(screenWidth - 64, screenHeight - 96, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(screenWidth - 64, screenHeight - (32 * 4), blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(screenWidth - 64, screenHeight - (32 * 5), blockWidth, blockHeight, brickImage));
-            slimes.add(new Slime(320,512,this));
-            flag = new Flag(screenWidth - 96, screenHeight - 96, blockWidth, blockHeight, flagImage);
-            spikes.add(new Spike(320,544,blockWidth,blockHeight,spikeImage));
-            spikes.add(new Spike(288,544,blockWidth,blockHeight,spikeImage));
+            for(int i = 0; i < 20; i++){
+                walls.add(new Wall(screenWidth -32, 32*i,blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*7, 32*18, blockWidth, blockHeight, brickImage));
+            for(int i = 0; i < 10; i++){
+                spikes.add(new Spike(32*(i+8), 32*18, blockWidth, blockHeight, spikeImage));
+            }
+            walls.add(new Wall(32*16, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*16, blockWidth, blockHeight, brickImage));
+            flag = new Flag(32*19,32*14, blockWidth, 2*blockHeight, flagImage);
         }
+
     }
     /**
-     * Makes Level 3 and has if conditions to check what part of level 1 the player is on via
+     * Makes Level 3 and has if conditions to check what part of level 3 the player is on via
      * screenX and screenY to keep track of what cell.
      * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
@@ -419,112 +735,601 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
             for (int i = 0; i < screenWidth+32; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 128; i < screenHeight-64; i +=32){
+            for(int i = 0; i < screenHeight -32; i += 32){
                 walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
-                walls.add(new Wall(screenWidth-32, i, blockWidth, blockHeight,brickImage));
             }
-            for(int i = 0; i < 6; i += 1){
-                walls.add(new Wall(32*i, screenHeight - 160,blockWidth,blockHeight, brickImage));
-                walls.add(new Wall(32*(i+9), screenHeight-160, blockWidth, blockHeight, brickImage));
+            for(int i = 0; i < 15; i++){
+                walls.add(new Wall(32*20, 32*(i+4), blockWidth, blockHeight, brickImage));
             }
-            walls.add(new Wall(544,screenHeight - 96, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(576,screenHeight-96, blockWidth,blockHeight, brickImage));
-            walls.add(new Wall(576,screenHeight-128, blockWidth,blockHeight, brickImage));
-            walls.add(new Wall(576,screenHeight-160, blockWidth,blockHeight, brickImage));
-            walls.add(new Wall(544,screenHeight-128, blockWidth,blockHeight, brickImage));
-            walls.add(new Wall(512,screenHeight - 96, blockWidth, blockHeight, brickImage));
+            spikes.add(new Spike(32*7, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*8,32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*10, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*18, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*17, 32*18, blockWidth, blockHeight, spikeImage));
 
-            walls.add(new Wall(32, 448, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32, 416, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(64, 448, blockWidth, blockHeight, brickImage));
-
-            for(int i =0; i < 5; i++){
-                walls.add(new Wall(32*i + 96,352,blockWidth, blockHeight, brickImage));
-            }
-
-            for(int i=0; i<4; i++){
-                walls.add(new Wall(32*(i+15),352,blockWidth,blockHeight,brickImage));
-            }
-            walls.add(new Wall(32*18,320, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32*18, 288, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32*17, 320, blockWidth, blockHeight, brickImage));
-            walls.add(new Wall(32*18,288-32, blockWidth, blockHeight, brickImage));
-            for(int i = 0; i<2; i++){
-                walls.add(new Wall(32 *(i+14), 32*6, blockWidth, blockHeight, brickImage));
-            }
-
-            slimes.add(new Slime(96,448,this));
-
-
+            walls.add(new Wall(32*16, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*14, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6, 32*13, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*7, 32*13, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*2, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6, 32*9, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*8, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*4, blockWidth, blockHeight, brickImage));
         }
         if (screenX == 1) {
-            for (int i = 0; i < screenWidth+32; i += 32) {
+            for (int i = -32; i < screenWidth + 32; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 128; i < screenHeight-64; i +=32){
-                walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
+            for(int i = 0; i< 16; i++){
+                walls.add(new Wall(32*20,32*i, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 0; i < 11; i++){
-                walls.add(new Wall(screenWidth -32,32*(i+4), blockWidth, blockHeight, brickImage));
+            for (int i = 0; i < 15; i++) {
+                walls.add(new Wall(0, 32 * (i + 4), blockWidth, blockHeight, brickImage));
             }
-            for(int i = 0; i < 19; i++) {
-                walls.add(new Wall(32*i, 32 * 4, blockWidth, blockHeight, brickImage));
+            for (int i = 0; i < 5; i++) {
+                walls.add(new Wall(32 * (i), 32 * 4, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*i, 32*15, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+4), 32*5, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+10), 32*5, blockWidth, blockHeight, brickImage));
             }
-            bats.add(new Bat(32*3, 32*9, this));
-            flagVisible = true;
-            flag = new Flag(96, screenHeight - 96, blockWidth, blockHeight, flagImage);
+            for(int i = 0; i < 15; i++){
+                walls.add(new Wall(32*(i+5), 32*9, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 6; i++){
+                walls.add(new Wall(32*9, 32*(i+10), blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*8, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*9, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*10, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*14, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*16, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*9, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*14, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*4, 32*14, blockWidth, blockHeight, brickImage));
+
+            for(int i = 0; i < 3; i++){
+                spikes.add(new Spike(32*(i+5), 32*4, blockWidth, blockHeight, spikeImage));
+                spikes.add(new Spike(32*(i+1), 32*5, blockWidth, -blockHeight, spikeImage));
+                spikes.add(new Spike(32*(i+11), 32*4, blockWidth, blockHeight, spikeImage));
+            }
+            spikes.add(new Spike(32*9, 32*5, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*15, 32*5, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*16, 32*5, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*2, 32*14, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*3, 32*14, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*16, blockWidth, -blockHeight, spikeImage));
+
+            slimes.add(new Slime(32*6, 32*8, this));
+            slimes.add(new Slime(32*2, 32*18, this));
+            slimes.add(new Slime(32*13, 32*18, this));
         }
         if (screenX == 2){
-            flagVisible = false;
-            for (int i = 0; i < screenWidth; i += 32) {
+            flagVisible = true;
+            for (int i = -32; i < screenWidth + 32; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 0; i < screenHeight-32; i +=32){
-                walls.add(new Wall(screenWidth-32, i, blockWidth, blockHeight,brickImage));
+            for(int i = 0; i < screenHeight -32; i += 32){
+                walls.add(new Wall(32*20, i, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 0; i < 11; i++){
-                walls.add(new Wall(0, 32 * (4+i), blockWidth, blockHeight, brickImage));
+            for(int i = 0; i< 16; i++){
+                walls.add(new Wall(0,32*i, blockWidth, blockHeight, brickImage));
             }
-            for(int i = 0; i < 16; i ++) {
-                walls.add(new Wall(32*(i+1), 32 * 4, blockWidth, blockHeight, brickImage));
-                walls.add(new Wall(32*(i+3), 32*8, blockWidth, blockHeight, brickImage));
-                walls.add(new Wall(32*(i+1), 32*12, blockWidth, blockHeight, brickImage));
-                spikes.add(new Spike(32*(i+3), 32*17,blockWidth, blockHeight, spikeImage));
+            walls.add(new Wall(32*17, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*14, 32*14, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*14, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*12, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*10, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17, 32*8, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*8, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*8, blockWidth, blockHeight, brickImage));
+
+            walls.add(new Wall(32*10, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*4, blockWidth, blockHeight, brickImage));
+
+            spikes.add(new Spike(32*6, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*7, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*8, 32*18, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*12, 32*5, blockWidth, -blockHeight, spikeImage));
+
+            slimes.add(new Slime(32*11, 32*3, this));
+            slimes.add(new Slime(32*18, 32*7, this));
+            for(Slime slime : slimes){
+                slime.setFaceRight(false);
             }
-            walls.add(new Wall(32*18,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*17,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*13,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*12,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*8,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*7,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*3,32*16,blockWidth, blockHeight,brickImage));
-            walls.add(new Wall(32*2,32*17,blockWidth, blockHeight,brickImage));
+
+            flag = new Flag(32*19, 32*6, blockWidth, 2*blockHeight, flagImage);
         }
     }
     /**
-     * Makes Level 4 and has if conditions to check what part of level 1 the player is on via
+     * Makes Level 4 and has if conditions to check what part of level 4 the player is on via
      * screenX and screenY to keep track of what cell.
      * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
      */
     public void makeLv4(){
         flagVisible = false;
-        if(screenX == 0) {
-            for (int i = 0; i < screenWidth + 32; i += 32) {
+        if(screenX == 0){
+            for (int i = 0; i < screenWidth+32; i += 32) {
                 walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
             }
-            for (int i = 0; i < screenHeight-32; i += 32) {
+            for(int i = 0; i < screenHeight -32; i += 32){
                 walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
             }
-            for (int i = 0; i < 19; i++) {
-                walls.add(new Wall(screenWidth - 32, 32*i, blockWidth, blockHeight, brickImage));
+            for(int i = 0; i < 16; i++){
+                walls.add(new Wall(32*20, 32*i, blockWidth, blockHeight, brickImage));
             }
-            for (int i = 0; i < 19; i++) {
-                walls.add(new Wall(32 * i, 0, blockWidth, blockHeight, brickImage));
+            for(int i=0; i < 8; i++){
+                walls.add(new Wall(32*(i+1), 32*10, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+12), 32*10, blockWidth, blockHeight, brickImage));
             }
-            bosses.add(new SlimeBoss(428, 640 - 128, this));
+            bats.add(new Bat(32*11, 32*7, this));
+        }
+        else if(screenX == 1){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 16; i++){
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*20, 32*(i+4), blockWidth, blockHeight, brickImage));
+            }
+            for(int i =0; i < 8; i++){
+                walls.add(new Wall(32*(i+1), 32*13, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 11; i++){
+                walls.add(new Wall(32*(i+9), 32*7, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*17, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*12, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*2, 32*12, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*2, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*1, 32*9, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*4, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*5, blockWidth, blockHeight, brickImage));
 
+            slimes.add(new Slime(32*17, 32*18, this));
+            bats.add(new Bat(32*4, 32*10, this));
+            bats.add(new Bat(32*12, 32*3, this));
+        }
+        else if(screenX == 2){
+            flagVisible = true;
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 16; i++){
+                walls.add(new Wall(0, 32*(i+4), blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < screenHeight-32; i+=32){
+                walls.add(new Wall(32*20, i, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*1, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*2, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 0, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 32, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 32*2, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 32*3, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5, 32*4, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*18, blockWidth, blockHeight, brickImage));
+
+            flag = new Flag(32*18, 32*16, blockWidth, 2*blockHeight, flagImage);
+
+            bats.add(new Bat(32*10, 32*4, this));
+            bats.add(new Bat(32*16, 32*8, this));
+            bats.add(new Bat(32*3, 32*12, this));
+            bats.add(new Bat(32*8, 32*16, this));
+        }
+
+    }
+    /**
+     * Makes Level 5 and has if conditions to check what part of level 5 the player is on via
+     * screenX and screenY to keep track of what cell.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
+     */
+    public void makeLv5(){
+        flagVisible = false;
+        if(screenX == 0){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(i, -32, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < screenHeight -32; i += 32){
+                walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 14; i++){
+                walls.add(new Wall(32*20, 32*(i+6), blockWidth,blockHeight,brickImage));
+            }
+            for(int i = 0; i < 3; i++) {
+                walls.add(new Wall(32 * 20, 32*i, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 16; i++){
+                spikes.add(new Spike(32*(i+4), 32*18, blockWidth, blockHeight, spikeImage));
+            }
+            walls.add(new Wall(32*6, 32*17, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*7, 32*17, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*8, 32*17, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*12, 32*15, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*13, 32*15, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*17, 32*13, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*18, 32*13, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*19, 32*13, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*19, 32*12, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*19, 32*11, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*12, 32*10, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*13, 32*10, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*14, 32*10, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*7, 32*9, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*8, 32*9, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32, 32*8, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*2, 32*8, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*3, 32*8, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32, 32*7, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*8, 32*5, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*13, 32*6, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*14, 32*6, blockWidth,blockHeight,brickImage));
+            walls.add(new Wall(32*19, 32*6, blockWidth,blockHeight,brickImage));
+
+            bats.add(new Bat(32*4, 32*3,this));
+        }
+        else if(screenX == 1){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 3; i++) {
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*20, 32*i, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 14; i++){
+                walls.add(new Wall(0, 32*(i+6), blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 7; i++){
+                walls.add(new Wall(32*20, 32*(i+6), blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 17; i++){
+                spikes.add(new Spike(32*(i+4), 32*18, blockWidth, blockHeight, spikeImage));
+            }
+            walls.add(new Wall(32*19, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*3, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32, 32*16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*3, 32*14, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32, 32*12, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*3, 32*10, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*5, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*10, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*20, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*6, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*11, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*17, 32*17+16, blockWidth, blockHeight/2, brickImage));
+
+            bats.add(new Bat(32*9, 32*3, this));
+        }
+        else if(screenX == 2){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 3; i++) {
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 7; i++){
+                walls.add(new Wall(0, 32*(i+6), blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0;i < screenHeight - 32; i+=32){
+                walls.add(new Wall(32*20, i, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 20; i++){
+                spikes.add(new Spike(32*(i), 32*18, blockWidth, blockHeight, spikeImage));
+            }
+            walls.add(new Wall(0, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*4, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*9, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*14, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*19, 32*17+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*7, 32*12, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*8, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*6, blockWidth, blockHeight, brickImage));
+
+            bats.add(new Bat(32*12, 32*3, this));
+            bats.add(new Bat(32*6, 32*16, this));
+
+            flagVisible = true;
+            flag = new Flag(32*18, 32*4, blockWidth, 2*blockHeight, flagImage);
         }
     }
+    /**
+     * Makes Level 6 and has if conditions to check what part of level 6 the player is on via
+     * screenX and screenY to keep track of what cell.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
+     */
+    public void makeLv6(){
+        flagVisible =  false;
+        if(screenX == 0){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 64, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(i, -32, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(i,32*11, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < screenHeight -32; i += 32){
+                walls.add(new Wall(0, i, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*1,32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*3,32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*3,32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*5,32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6,32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6,32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*7,32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*8,32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*9,32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*9,32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*9,32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*10,32*18, blockWidth, blockHeight, brickImage));
+            spikes.add(new Spike(32*7,32*15, blockWidth, blockHeight, spikeImage));
+            for(int i = 0; i<9; i++){
+                walls.add(new Wall(32*(i+12), 32*15, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 12; i++){
+                walls.add(new Wall(32*(i+9), 32*7, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*9,32*8, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*9,32*9, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*9,32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13,32*6, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13,32*5, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13,32*4, blockWidth, blockHeight, brickImage));
+            spikes.add(new Spike(32*13,32*3, blockWidth, blockHeight, spikeImage));
+            walls.add(new Wall(32*12,32*5, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*14,32*5, blockWidth, blockHeight/2, brickImage));
+            for(int i = 0; i < 4; i++){
+                walls.add(new Wall(32*(i+16), 32*3, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+6),32*3, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*8,32*i, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*6,32*(i+4), blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*i, 32*3, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*20,32*3, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17,32*2, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17,32, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17,0, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32,32*9+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*3,32*7+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*5,32*5+16, blockWidth, blockHeight/2, brickImage));
+
+            spikes.add(new Spike(32*6,32*8, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*13, 32*16, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*14, 32*16, blockWidth, -blockHeight, spikeImage));
+            slimes.add(new Slime(32*12, 32*10, this));
+            slimes.add(new Slime(32*4, 32*10, this));
+            flagVisible = true;
+            flag = new Flag(32*2, 32, blockWidth, 2*blockHeight, flagImage);
+        }
+        else if (screenX == 1){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight-32, blockWidth, blockHeight, brickImage));
+            }
+            for(int i =0; i < 8; i++){
+                walls.add(new Wall(32*i, 32*19, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*11, 32*19, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*19, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13, 32*19, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*17, 32*19, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*18, 32*19, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*19, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*20, 32*19, blockWidth, blockHeight, brickImage));
+            spikes.add(new Spike(32*8, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*10, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*14, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*15, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*16, 32*19, blockWidth, blockHeight, spikeImage));
+            for(int i = 0; i < 4; i++){
+                walls.add(new Wall(32*i, 32*15, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*3, 32*(i+15), blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*20, 32*(i+11), blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*7, 32*(i+11), blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*6, 32*(i+3), blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*5, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*20, 32*15, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(0, 32*3, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32, 32*3, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(0, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(0, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6, 32*13, blockWidth, blockHeight, brickImage));
+            for(int i =0; i < 16; i++){
+                walls.add(new Wall(32*(i+6), 32*3, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 9; i++){
+                walls.add(new Wall(32*(i+7), 32*15, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32*4, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*4, 32*17, blockWidth, blockHeight, brickImage));
+
+            walls.add(new Wall(32*11, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*13, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*12, 32*8, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*16, 32*11, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*16, 32*10, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*16, 32*6+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*17, 32*6+16, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*20, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*2, 32*3, blockWidth/6, blockHeight, brickImage));
+            walls.add(new Wall(32*6-(32/6), 32*3, blockWidth/6, blockHeight, brickImage));
+            spikes.add(new Spike(32*8, 32*14, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*14, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*10, 32*14, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*14, 32*14, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*15, 32*14, blockWidth, blockHeight, spikeImage));
+
+            bats.add(new Bat(32*8, 32*6, this));
+            slimes.add(new Slime(32*8, 32*2, this));
+
+        }
+
+        else if (screenX == 2){
+            for (int i = 0; i < screenWidth+32; i += 32) {
+                walls.add(new Wall(i, screenHeight - 32, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < screenHeight -32; i += 32){
+                walls.add(new Wall(32*20, i, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 16; i++){
+                walls.add(new Wall(32*i, 32*15, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*i, 32*3, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 8; i++){
+                walls.add(new Wall(32*(i+13), 32*19, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*15, 32*(i+4), blockWidth, blockHeight, brickImage));
+                spikes.add(new Spike(32*(i+1), 32*14, blockWidth, blockHeight,spikeImage));
+            }
+            for(int i = 0; i < 5; i++){
+                walls.add(new Wall(32*(i), 32*19, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 4; i++){
+                walls.add(new Wall(32*(i+7), 32*19, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(0, 32*(i+11), blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i-1), 32*7, blockWidth, blockHeight, brickImage));
+            }
+            walls.add(new Wall(32, 32*11, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*18, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*17, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*15, 32*16, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*2, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*3, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*4, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*5, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*5, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*6, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*7, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*7, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*8, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*9, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*10, 32*8, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*10, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*11, 32*7, blockWidth, blockHeight, brickImage));
+            walls.add(new Wall(32*19, 32*17, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*16, 32*15, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*19, 32*13, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*16, 32*11, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*19, 32*9, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*16, 32*7, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*19, 32*5, blockWidth, blockHeight/2, brickImage));
+            walls.add(new Wall(32*16, 32*3, blockWidth, blockHeight/2, brickImage));
+
+            spikes.add(new Spike(32*3, 32*7, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*4, 32*7, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*8, 32*7, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*7, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*4, 32*2, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*5, 32*2, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*8, 32*2, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*2, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*5, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*6, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*11, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*12, 32*19, blockWidth, blockHeight, spikeImage));
+            spikes.add(new Spike(32*2, 32*16, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*3, 32*16, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*8, 32*16, blockWidth, -blockHeight, spikeImage));
+            spikes.add(new Spike(32*9, 32*16, blockWidth, -blockHeight, spikeImage));
+
+            bats.add(new Bat(32*8, 32*9, this));
+        }
+    }
+    /**
+     * Makes Level 7 and has if conditions to check what part of level 7 the player is on via
+     * screenX and screenY to keep track of what cell.
+     * Also creates all the entities and tiles for that level and adds them to their corresponding lists.
+     * This level is the bossFight.
+     */
+    public void makeLv7(){
+        if(screenX == 0 && screenY == 0){
+            for(int i = 0; i < 8; i++){
+                walls.add(new Wall(32*i, screenHeight-64, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+13), screenHeight -64, blockWidth,blockHeight,brickImage));
+            }
+            for(int i = 0; i < 20; i++){
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight,brickImage));
+                walls.add(new Wall(32*20, 32*i, blockWidth, blockHeight, brickImage));
+            }
+        }
+        else if(screenX == 0 && screenY == 1){
+            for(int i = 0; i < 8; i++){
+                walls.add(new Wall(32*i, 0, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+13), 0, blockWidth,blockHeight,brickImage));
+            }
+            for(int i = 0; i < screenWidth; i+= 32){
+                walls.add(new Wall(i, screenHeight-64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 20; i++){
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight,brickImage));
+                walls.add(new Wall(32*20, 32*i, blockWidth, blockHeight, brickImage));
+            }
+            bosses.add(new SlimeBoss(32*16, 32*16, this));
+
+        } else if(screenX == 1 && screenY == 1){
+            for(int i = 0; i < 8; i++){
+                walls.add(new Wall(32*i, 0, blockWidth, blockHeight, brickImage));
+                walls.add(new Wall(32*(i+13), 0, blockWidth,blockHeight,brickImage));
+            }
+            for(int i = 0; i < screenWidth; i+= 32){
+                walls.add(new Wall(i, screenHeight-64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 20; i++){
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight,brickImage));
+            }
+            for(int i = 0; i < 15; i++){
+                walls.add(new Wall(32*20, 32*i, blockWidth, blockHeight,brickImage));
+            }
+        }
+        else if(screenX == 2 && screenY == 1){
+            for(int i = 0; i < screenWidth; i+= 32){
+                walls.add(new Wall(i, screenHeight-64, blockWidth, blockHeight, brickImage));
+            }
+            for(int i = 0; i < 20; i++){
+                walls.add(new Wall(32*20, 32*i, blockWidth, blockHeight,brickImage));
+            }
+            for(int i = 0; i < 15; i++){
+                walls.add(new Wall(0, 32*i, blockWidth, blockHeight,brickImage));
+            }
+        }
+    }
+
 
     /**
      * Loads all the images for every single entity, tile, flag,background, spike.
@@ -544,9 +1349,15 @@ public class GamePanel extends javax.swing.JPanel implements ActionListener {
         try{
             background = ImageIO.read(getClass().getResourceAsStream("/Backgrounds/castleHallwayBackground.png"));
             player.loadPlayerImages();
-            flagImage = ImageIO.read(getClass().getResourceAsStream("/Flag8Bit.png"));
+            flagImage = ImageIO.read(getClass().getResourceAsStream("/door.png"));
             brickImage = ImageIO.read(getClass().getResourceAsStream("/brickTile.jpg"));
             spikeImage = ImageIO.read(getClass().getResourceAsStream("/spikes.png"));
+            BufferedImage WASD = ImageIO.read(getClass().getResourceAsStream("/wasdkeys.png"));
+            wKey = WASD.getSubimage(20,30,350,350);
+            dKey = WASD.getSubimage(400,400,350,350);
+            aKey = WASD.getSubimage(400,30,350,350);
+            sKey = WASD.getSubimage(20,400,350,350);
+            spaceKey = ImageIO.read(getClass().getResourceAsStream("/spacebarKey.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

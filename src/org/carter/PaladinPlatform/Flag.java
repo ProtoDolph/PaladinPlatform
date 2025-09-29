@@ -47,7 +47,7 @@ public class Flag {
      * @param gtd the Graphics2D used to draw on the frame.
      */
     public void draw(Graphics2D gtd){
-        gtd.drawImage(image,x,y,null);
+        gtd.drawImage(image,x,y, width, height, null);
     }
 
     /**

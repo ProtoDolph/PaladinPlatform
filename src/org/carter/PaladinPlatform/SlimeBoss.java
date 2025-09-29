@@ -41,7 +41,7 @@ public class SlimeBoss {
     public BufferedImage[] atk3 = new BufferedImage[8];
     public Rectangle atk3HitBox;
     public BufferedImage[] idle = new BufferedImage[8];
-    public BufferedImage[] death = new BufferedImage[9];
+    public BufferedImage[] death = new BufferedImage[15];
     public BufferedImage[] hurt = new BufferedImage[5];
     public BufferedImage currFrame;
     public BufferedImage flash;
@@ -340,9 +340,10 @@ public class SlimeBoss {
                 frameNum = 0;
                 dying = false;
                 alive = false;
-                panel.bosses.remove(this);
+                currFrame = death[death.length -1];
+            } else {
+                currFrame = death[frameNum];
             }
-            currFrame = death[frameNum];
 
         }
         else if(attack1){
@@ -466,26 +467,32 @@ public class SlimeBoss {
 
             BufferedImage ogDeath = ImageIO.read(getClass().getResourceAsStream("/slimeSprite/Red_Slime/Dead.png"));
             BufferedImage ogHurt = ImageIO.read(getClass().getResourceAsStream("/slimeSprite/Red_Slime/Hurt.png"));
-            death[0] = ogHurt.getSubimage(44,96,iWidth, iHeight);
-            death[1] = ogHurt.getSubimage(170,96,iWidth+2,iHeight);
-            death[2] = ogHurt.getSubimage(286, 92, iWidth+14, iHeight+4);
-            death[3] = ogHurt.getSubimage(396,94, iWidth+32, iHeight+2);
-            death[4] = ogHurt.getSubimage(518,96,iWidth+38,iHeight);
-            death[5] = ogHurt.getSubimage(644, 96, iWidth+38, iHeight);
-            death[6] = ogDeath.getSubimage(38, 96, iWidth, iHeight);
-            death[7] = ogDeath.getSubimage(166, 96, iWidth, iHeight);
-            death[8] = ogDeath.getSubimage(292, 96, iWidth+6, iHeight);
+            death[0] = ogDeath.getSubimage(38, 96, iWidth, iHeight);
+            death[1] = death[0];
+            death[2] = death[0];
+            death[3] = death[0];
+            death[4] = death[0];
+            death[5] = ogDeath.getSubimage(166, 96, iWidth, iHeight);
+            death[6] = death[5];
+            death[7] = death[5];
+            death[8] = death[5];
+            death[9] = death[5];
+            death[10] = ogDeath.getSubimage(292, 96, iWidth+6, iHeight);
+            death[11] = death[10];
+            death[12] = death[10];
+            death[13] = death[10];
+            death[14] = death[10];
 
 
-            hurt[0] = death[0];
+            hurt[0] = ogHurt.getSubimage(44,96,iWidth, iHeight);
             flash = ogHurt.getSubimage(0,0,2,2);
-            hurt[1] = death[1];
+            hurt[1] = ogHurt.getSubimage(170,96,iWidth+2,iHeight);
             //hurt[3] = hurt[1];
-            hurt[2] = death[2];
+            hurt[2] = ogHurt.getSubimage(286, 92, iWidth+14, iHeight+4);
             //hurt[5] = hurt[1];
-            hurt[3] = death[3];
+            hurt[3] = ogHurt.getSubimage(396,94, iWidth+32, iHeight+2);
             //hurt[7] = hurt[1];
-            hurt[4] = death[4];
+            hurt[4] = ogHurt.getSubimage(518,96,iWidth+38,iHeight);
             //hurt[9] = hurt[1];
             //hurt[5] = death[5];
             //hurt[11] = hurt[1];
@@ -503,7 +510,7 @@ public class SlimeBoss {
      * And it sets alive to false since its no longer alive.
      */
     public void checkAlive(){
-        if(hp <= 0 && !dying){
+        if(hp <= 0 && alive){
             dying = true;
             frameNum = 0;
             alive = false;

@@ -18,13 +18,16 @@ public class Slime {
     public int height;
     public boolean faceRight;
     public boolean launch;
+    public boolean hit;
     public boolean alive;
+    public int slimeHP;
     public boolean dying;
     public Rectangle hitBox;
     public BufferedImage currFrame;
     public int frameNum;
     public BufferedImage[] slime = new BufferedImage[7];
     public BufferedImage[] death = new BufferedImage[12];
+    public BufferedImage[] hurt = new BufferedImage[8];
 
     /**
      * This creates a Slime into the game. Must be created in the GamePanel
@@ -43,9 +46,10 @@ public class Slime {
         this.width = 32;
         this.height = 32;
         alive = true;
+        slimeHP = 2;
         dying = false;
         launch = false;
-        maxSpeed = 4;
+        maxSpeed = 3;
         jumpSpeed = -5;
         fallSpeed = 0.3;
 
@@ -97,9 +101,10 @@ public class Slime {
         if(dying){
             xSpeed = 0;
         }
-
-        x += xSpeed;
-        y += ySpeed;
+        int dx = (int) Math.round(xSpeed);
+        int dy = (int) Math.round(ySpeed);
+        x += dx;
+        y += dy;
         hitBox.x = x;
         hitBox.y = y;
     }
@@ -111,8 +116,10 @@ public class Slime {
      * @param gtd the Graphics2D that will draw the slime's current Frame.
      */
     public void draw(Graphics2D gtd){
-        //gtd.setColor(Color.RED);
-        //gtd.drawRect(x, y, width, height);
+        /*
+        gtd.setColor(Color.RED);
+        gtd.drawRect(x, y, width, height);
+(       */
         if (faceRight) {
             gtd.drawImage(currFrame, x, y - (currFrame.getHeight() - height), width, currFrame.getHeight(), null);
             //gtd.drawRect(x + width, y + height, width ,height);
@@ -140,9 +147,22 @@ public class Slime {
                 p1HitBox = new Rectangle(player.x + player.width/2, player.y, player.width * 2, player.height);
             }
             if(p1HitBox.intersects(hitBox)){
-                alive = false;
-                dying = true;
-                frameNum = 0;
+                if(!hit) {
+                    slimeHP--;
+                    launch = false;
+                    ySpeed += -6;
+                    if (slimeHP <= 0) {
+                        alive = false;
+                        dying = true;
+                    }
+                    frameNum = 0;
+                    if(faceRight && player.facingLeft){
+                        faceRight = false;
+                    } else if(!faceRight && !player.facingLeft){
+                        faceRight = true;
+                    }
+                }
+                hit = true;
             }
         }
     }
@@ -161,12 +181,20 @@ public class Slime {
             if(frameNum >= death.length){
                 frameNum = 0;
                 dying = false;
-                currFrame = death[-1];
+                currFrame = death[11];
             }else {
                 currFrame = death[frameNum];
             }
             frameNum++;
 
+        }else if(hit){
+            if(frameNum >= hurt.length){
+                frameNum = 0;
+                hit = false;
+            } else {
+                currFrame = hurt[frameNum];
+            }
+            frameNum++;
         }else if(alive) {
             if (frameNum >= slime.length) {
                 frameNum = 0;
@@ -209,6 +237,16 @@ public class Slime {
             death[10] = death[8];
             death[11] = death[8];
 
+            BufferedImage ogJump = ImageIO.read(getClass().getResourceAsStream("/slimeSprite/Green_Slime/Jump.png"));
+            hurt[0] = ogJump.getSubimage(430,86,width+8, height+10);
+            hurt[1] = ogJump.getSubimage(562,72,width+2, height+18);
+            hurt[2] = ogJump.getSubimage(686,68,width+8, height+16);
+            hurt[3] = ogJump.getSubimage(810,68,width+12,height+10);
+            hurt[4] = ogJump.getSubimage(936, 68, width+16, height+6);
+            hurt[5] = ogJump.getSubimage(1072, 64, width+7, height+15);
+            hurt[6] = ogJump.getSubimage(1200,76, width+6, height+18);
+            hurt[7] = ogJump.getSubimage(1328, 84, width+6, height+12);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -227,9 +265,9 @@ public class Slime {
         if(alive) {
             int tempx;
             if (faceRight) {
-                tempx = x + width;
+                tempx = x + width/2;
             } else {
-                tempx = x - width;
+                tempx = x - width/2;
             }
             int tempy = y + height;
             Rectangle tempHitbox = new Rectangle(tempx, tempy, width, height);
@@ -284,6 +322,7 @@ public class Slime {
                 while(!wall.hitBox.intersects(hitBox)){hitBox.x += Math.signum(xSpeed);}
                 hitBox.x -= Math.signum(xSpeed);
                 xSpeed = 0;
+                launch = false;
                 x = hitBox.x;
                 faceRight = !faceRight;
             }
